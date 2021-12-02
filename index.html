@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <title>nh-mvp</title>
+    <script type="module" src="./dist/index.js"></script>
+    <link rel="stylesheet" type="text/css" href="style.css">
+</head>
+
+<body>
+  <div id="app">
+    <div class="container">
+      <!--UPLOAD-->
+      <form enctype="multipart/form-data" novalidate v-if="isInitial || isSaving">
+        <h1>upload meme(z)</h1>
+        <div class="dropbox">
+          <input type="file" :disabled="isSaving" @change="save($event.target.files[0]);"
+            accept="image/*" class="input-file">
+            <p v-if="isInitial">
+              drag your meme(z) here to begin<br> or click to browse
+            </p>
+            <p v-if="isSaving">
+              uploading meme...
+            </p>
+        </div>
+      </form>
+  </div>
+
+  <div class="container">
+    <div v-for="meme in memez">
+        <img style="max-width: 100%;" v-bind:src="`${meme}`">
+    </div>
+  </div>
+</body>
+
+</html>

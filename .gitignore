@@ -1,0 +1,14 @@
+/target
+
+.direnv/
+result*
+
+node_modules/
+dist/
+
+# holochain
+happs/**/*.dna
+happs/**/*.happ
+happs/**/*.wasm
+.hc
+.hc_live_*

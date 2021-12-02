@@ -1,0 +1,8 @@
+manifest_version: "1"
+name: "memez"
+uuid: ""
+properties: null
+zomes:
+  - name: memez_main_zome
+    bundled: "./memez.wasm"
+    #    properties:
