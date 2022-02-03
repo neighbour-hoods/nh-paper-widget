@@ -6,6 +6,11 @@
     <title>nh-mvp</title>
     <script type="module" src="./dist/index.js"></script>
     <link rel="stylesheet" type="text/css" href="style.css">
+    <script>
+      function wat(elmt) {
+        alert(elmt.value);
+      }
+    </script>
 </head>
 
 <body>
@@ -28,8 +33,11 @@
   </div>
 
   <div class="container">
-    <div v-for="meme in memez">
+    <div v-for="meme in memez" style="border: 20px solid #969696;">
         <img style="max-width: 100%;" v-bind:src="`${meme.meme_string}`">
+        Score: {{ meme.opt_score ?? "null" }}
+        <button value="clap" onClick='wat(this)'>👏</button>
+        <button value="deep" onClick='wat(this)'>🤿</button>
     </div>
   </div>
 </body>
