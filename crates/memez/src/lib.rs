@@ -1,6 +1,6 @@
 use hdk::prelude::*;
 
-use common::InterchangeEntry;
+use common::{InterchangeEntry, SchemeEntry};
 use rep_interchange::{
     get_linked_interchange_entries_which_unify, mk_application_ie, pack_ies_into_list_ie,
 };
@@ -15,7 +15,8 @@ entry_defs![
     Meme::entry_def(),
     MemeRoot::entry_def(),
     ScoreComputationRoot::entry_def(),
-    InterchangeEntry::entry_def()
+    InterchangeEntry::entry_def(),
+    SchemeEntry::entry_def()
 ];
 
 #[hdk_entry]
