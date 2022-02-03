@@ -1,8 +1,8 @@
 use hdk::prelude::*;
 
-use common::{InterchangeEntry, SchemeEntry};
-use rep_interchange::{
+use common::{
     get_linked_interchange_entries_which_unify, mk_application_ie, pack_ies_into_list_ie,
+    InterchangeEntry, SchemeEntry,
 };
 use rep_lang_runtime::{
     eval::{FlatValue, Value},
