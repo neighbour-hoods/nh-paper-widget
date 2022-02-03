@@ -90,7 +90,7 @@ const App = {
         provenance: cell_id[1],
       });
       console.log(res);
-      this.memez = res;
+      this.memez = res.sort(function(a, b) { return a.opt_score - b.opt_score });
     },
   },
   mounted() {
