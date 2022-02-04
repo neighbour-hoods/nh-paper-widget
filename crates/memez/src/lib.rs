@@ -1,12 +1,13 @@
 use hdk::prelude::*;
 
 use common::{
-    get_linked_interchange_entries_which_unify, mk_application_ie, pack_ies_into_list_ie,
-    InterchangeEntry, SchemeEntry,
+    create_interchange_entry_parse, get_linked_interchange_entries_which_unify, mk_application_ie,
+    pack_ies_into_list_ie, CreateInterchangeEntryInputParse, InterchangeEntry, SchemeEntry,
 };
 use rep_lang_runtime::{
     eval::{FlatValue, Value},
-    types::{type_int, type_pair, Scheme},
+    infer::{normalize, unifies, InferState},
+    types::{type_arr, type_int, type_pair, Scheme},
 };
 
 pub const OWNER_TAG: &str = "memez_owner";
@@ -156,4 +157,40 @@ fn score_meme(meme_eh: EntryHash) -> ExternResult<Option<(HeaderHash, Interchang
         // no selected score comp - we can't score.
         _ => Ok(None),
     }
+}
+
+/// takes a string which should parse to a `rep_lang` Expr with type
+///   List (Int, Int) -> Int
+/// and returns a string representation of the `HeaderHash` of the created
+/// InterchangeEntry which houses the score computation.
+#[hdk_extern]
+fn create_score_computation(comp: String) -> ExternResult<String> {
+    let input = CreateInterchangeEntryInputParse {
+        expr: comp,
+        args: vec![],
+    };
+    let (hh, ie) = create_interchange_entry_parse(input)?;
+
+    // check IE scheme is right
+    let () = {
+        let mut is = InferState::new();
+
+        let target_ty = type_arr(type_pair(type_int(), type_int()), type_int());
+        let target_sc = Scheme(Vec::new(), target_ty);
+        let Scheme(_, normalized_target_ty) = normalize(&mut is, target_sc.clone());
+
+        // check unification of normalized type
+        let Scheme(_, normalized_ie_ty) = normalize(&mut is, ie.output_scheme.clone());
+        // we are only interested in whether a type error occured
+        if unifies(normalized_target_ty.clone(), normalized_ie_ty).is_ok() {
+            Ok(())
+        } else {
+            Err(WasmError::Guest(format!(
+                "unification error: score comp has wrong type.\n\tactual: {:?}\n\texpected: {:?}",
+                ie.output_scheme, target_sc,
+            )))
+        }
+    }?;
+
+    Ok(hh.to_string())
 }

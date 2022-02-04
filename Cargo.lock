@@ -109,8 +109,9 @@ dependencies = [
 [[package]]
 name = "common"
 version = "0.1.0"
-source = "git+https://github.com/neighbour-hoods/rep_interchange.git?rev=77df9acc1145556649e60ce6c58b9191d236ad63#77df9acc1145556649e60ce6c58b9191d236ad63"
+source = "git+https://github.com/neighbour-hoods/rep_interchange.git?rev=47326e8c8b32e6067a3656c3e1e0dadf0138ef66#47326e8c8b32e6067a3656c3e1e0dadf0138ef66"
 dependencies = [
+ "combine",
  "hdk",
  "pretty",
  "rep_lang_concrete_syntax",

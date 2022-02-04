@@ -8,7 +8,7 @@ edition = "2018"
 hdk = "0.0.117"
 serde = "1"
 
-common = { git = "https://github.com/neighbour-hoods/rep_interchange.git", rev = "77df9acc1145556649e60ce6c58b9191d236ad63" }
+common = { git = "https://github.com/neighbour-hoods/rep_interchange.git", rev = "47326e8c8b32e6067a3656c3e1e0dadf0138ef66" }
 rep_lang_runtime = { git = "https://github.com/neighbour-hoods/rep_lang.git", rev = "3d06e84338c8f9635046b629211e4811ef9ff216", features = ["hc"] }
 
 [lib]
