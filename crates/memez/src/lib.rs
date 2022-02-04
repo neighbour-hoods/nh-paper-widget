@@ -2,8 +2,9 @@ use hdk::prelude::*;
 
 use common::{
     create_interchange_entry_parse, get_interchange_entries_which_unify,
-    get_linked_interchange_entries_which_unify, mk_application_ie, pack_ies_into_list_ie,
-    CreateInterchangeEntryInputParse, InterchangeEntry, SchemeEntry,
+    get_interchange_entry_by_headerhash, get_linked_interchange_entries_which_unify,
+    mk_application_ie, pack_ies_into_list_ie, CreateInterchangeEntryInputParse, InterchangeEntry,
+    SchemeEntry,
 };
 use rep_lang_runtime::{
     eval::{FlatValue, Value},
@@ -16,7 +17,6 @@ pub const OWNER_TAG: &str = "memez_owner";
 entry_defs![
     Meme::entry_def(),
     MemeRoot::entry_def(),
-    ScoreComputationRoot::entry_def(),
     InterchangeEntry::entry_def(),
     SchemeEntry::entry_def()
 ];
@@ -29,9 +29,6 @@ struct Meme {
 
 #[hdk_entry]
 struct MemeRoot;
-
-#[hdk_entry]
-struct ScoreComputationRoot;
 
 #[derive(Debug, Serialize, Deserialize)]
 struct Params {
@@ -64,7 +61,34 @@ fn upload_meme(params: Params) -> ExternResult<HeaderHash> {
 
 // TODO figure out how to send a `()` from JS so we can call without fake Params arg
 #[hdk_extern]
-fn get_all_meme_strings(_: Params) -> ExternResult<Vec<ScoredMeme>> {
+fn get_all_meme_strings(score_comp_ie_hh: HeaderHash) -> ExternResult<Vec<ScoredMeme>> {
+    // let score_comp_ie_hh = HeaderHash::try_from(score_comp_ie_hh_str).map_err(|err|
+    //     WasmError::Guest(format!("err: {}", err))
+    // )?;
+    let (_eh, score_comp_ie) = get_interchange_entry_by_headerhash(score_comp_ie_hh.clone())?;
+
+    // check score_comp is valid
+    let () = {
+        // check IE scheme is right
+        let mut is = InferState::new();
+
+        let target_ty = type_arr(type_pair(type_int(), type_int()), type_int());
+        let target_sc = Scheme(Vec::new(), target_ty);
+        let Scheme(_, normalized_target_ty) = normalize(&mut is, target_sc.clone());
+
+        // check unification of normalized type
+        let Scheme(_, normalized_ie_ty) = normalize(&mut is, score_comp_ie.output_scheme.clone());
+        // we are only interested in whether a type error occured
+        if unifies(normalized_target_ty.clone(), normalized_ie_ty).is_ok() {
+            Ok(())
+        } else {
+            Err(WasmError::Guest(format!(
+                "unification error: score comp has wrong type.\n\tactual: {:?}\n\texpected: {:?}",
+                score_comp_ie.output_scheme, target_sc,
+            )))
+        }
+    }?;
+
     let meme_entry_links = get_links(hash_entry(MemeRoot)?, None)?;
     let meme_strings: Vec<ScoredMeme> = meme_entry_links
         .into_iter()
@@ -83,7 +107,7 @@ fn get_all_meme_strings(_: Params) -> ExternResult<Vec<ScoredMeme>> {
                 Some(m) => Ok(m),
                 None => Err(WasmError::Guest(format!("non-present arg: {}", meme_eh))),
             }?;
-            let opt_score = (score_meme(meme_eh)?).map(|(_hh, ie)| {
+            let opt_score = (score_meme(meme_eh, score_comp_ie_hh.clone())?).map(|(_hh, ie)| {
                 // "adapter" / "converter" should go here and clean up the API
                 match ie.output_flat_value {
                     FlatValue(Value::VInt(x)) => x,
@@ -115,7 +139,10 @@ fn create_meme_root_if_needed() -> ExternResult<bool> {
     }
 }
 
-fn score_meme(meme_eh: EntryHash) -> ExternResult<Option<(HeaderHash, InterchangeEntry)>> {
+fn score_meme(
+    meme_eh: EntryHash,
+    score_comp_ie_hh: HeaderHash,
+) -> ExternResult<Option<(HeaderHash, InterchangeEntry)>> {
     let ty = type_pair(type_int(), type_int());
     let sc = Scheme(Vec::new(), ty);
 
@@ -123,47 +150,21 @@ fn score_meme(meme_eh: EntryHash) -> ExternResult<Option<(HeaderHash, Interchang
 
     let reaction_list_ie = pack_ies_into_list_ie(reaction_ies.into_iter().map(|t| t.0).collect())?;
 
-    // in general, this should have either length 0 or 1
-    // if it has length 0, then a selection has not been made, and we should error out
-    // if it has length 1, that is our Score Computation.
-    let score_comp_ie_links = get_links(hash_entry(ScoreComputationRoot)?, None)?;
+    let reaction_list_ie_hh = create_entry(&reaction_list_ie)?;
+    let score_comp_application_ie = mk_application_ie(vec![score_comp_ie_hh, reaction_list_ie_hh])?;
 
-    match &score_comp_ie_links[..] {
-        // we have a score comp
-        [score_comp_ie_link] => {
-            let score_comp_ie_eh = score_comp_ie_link.target.clone();
-            let score_comp_ie_hh: HeaderHash = {
-                let element = (match get(score_comp_ie_eh.clone(), GetOptions::content())? {
-                    Some(el) => Ok(el),
-                    None => Err(WasmError::Guest(format!(
-                        "could not dereference arg: {}",
-                        score_comp_ie_eh
-                    ))),
-                })?;
-                element.header_hashed().as_hash().clone()
-            };
+    let score_comp_application_ie_hh = create_entry(&score_comp_application_ie)?;
 
-            let reaction_list_ie_hh = create_entry(&reaction_list_ie)?;
-            let score_comp_application_ie =
-                mk_application_ie(vec![score_comp_ie_hh, reaction_list_ie_hh])?;
-
-            let score_comp_application_ie_hh = create_entry(&score_comp_application_ie)?;
-
-            Ok(Some((
-                score_comp_application_ie_hh,
-                score_comp_application_ie,
-            )))
-        }
-
-        // no selected score comp - we can't score.
-        _ => Ok(None),
-    }
+    Ok(Some((
+        score_comp_application_ie_hh,
+        score_comp_application_ie,
+    )))
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 struct ScoreComputation {
     expr_str: String,
-    ie_hh: String,
+    ie_hh: HeaderHash,
 }
 
 #[hdk_extern]
@@ -176,7 +177,7 @@ fn get_score_computations(_: ()) -> ExternResult<Vec<ScoreComputation>> {
         .into_iter()
         .map(|(hh, ie)| {
             let expr_str = format!("{:?}", ie.operator);
-            let ie_hh = hh.to_string();
+            let ie_hh = hh;
             ScoreComputation { expr_str, ie_hh }
         })
         .collect())
@@ -187,7 +188,7 @@ fn get_score_computations(_: ()) -> ExternResult<Vec<ScoreComputation>> {
 /// and returns a string representation of the `HeaderHash` of the created
 /// InterchangeEntry which houses the score computation.
 #[hdk_extern]
-fn create_score_computation(comp: String) -> ExternResult<String> {
+fn create_score_computation(comp: String) -> ExternResult<HeaderHash> {
     let input = CreateInterchangeEntryInputParse {
         expr: comp,
         args: vec![],
@@ -215,5 +216,5 @@ fn create_score_computation(comp: String) -> ExternResult<String> {
         }
     }?;
 
-    Ok(hh.to_string())
+    Ok(hh)
 }
