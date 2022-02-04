@@ -1,8 +1,9 @@
 use hdk::prelude::*;
 
 use common::{
-    create_interchange_entry_parse, get_linked_interchange_entries_which_unify, mk_application_ie,
-    pack_ies_into_list_ie, CreateInterchangeEntryInputParse, InterchangeEntry, SchemeEntry,
+    create_interchange_entry_parse, get_interchange_entries_which_unify,
+    get_linked_interchange_entries_which_unify, mk_application_ie, pack_ies_into_list_ie,
+    CreateInterchangeEntryInputParse, InterchangeEntry, SchemeEntry,
 };
 use rep_lang_runtime::{
     eval::{FlatValue, Value},
@@ -157,6 +158,28 @@ fn score_meme(meme_eh: EntryHash) -> ExternResult<Option<(HeaderHash, Interchang
         // no selected score comp - we can't score.
         _ => Ok(None),
     }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct ScoreComputation {
+    expr_str: String,
+    ie_hh: String,
+}
+
+#[hdk_extern]
+fn get_score_computations(_: ()) -> ExternResult<Vec<ScoreComputation>> {
+    let target_ty = type_arr(type_pair(type_int(), type_int()), type_int());
+    let target_sc = Scheme(Vec::new(), target_ty);
+    let score_comps = get_interchange_entries_which_unify(Some(target_sc))?;
+
+    Ok(score_comps
+        .into_iter()
+        .map(|(hh, ie)| {
+            let expr_str = format!("{:?}", ie.operator);
+            let ie_hh = hh.to_string();
+            ScoreComputation { expr_str, ie_hh }
+        })
+        .collect())
 }
 
 /// takes a string which should parse to a `rep_lang` Expr with type
