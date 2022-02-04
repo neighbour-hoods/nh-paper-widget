@@ -5,10 +5,12 @@
 
 === building
 
+(with a https://nixos.wiki/wiki/Flakes#Installing_flakes[Flakes] supporting https://nixos.org/download.html[`nix`] installed)
+
 [source]
 ----
-# enter dev shell
-$ nix develop
+# enter dev shell (we need impure because Holonix is not pure 😢)
+$ nix develop --impure
 [<...>]$ npm install
 [<...>]$ npm run hc:build
 [<...>]$ npm run hc:pack
