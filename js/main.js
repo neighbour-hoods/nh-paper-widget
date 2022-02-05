@@ -13,6 +13,8 @@ const App = {
       currentStatus: null,
       hcInfo: null,
       memez: [],
+      scoreComps: [],
+      selectedScoreCompHash: null,
     }
   },
   async created () {
@@ -25,6 +27,31 @@ const App = {
         agentPk: agentPk,
     };
     this.hcInfo = hcInfo;
+
+    let info = await this.hcInfo.appWs.appInfo({
+      // TODO figure out why this works... it shouldn't, I think?
+      installed_app_id: 'test-app',
+    });
+    const cell_id = info.cell_data[0].cell_id;
+    this.selectedScoreCompHash = await this.hcInfo.appWs.callZome({
+      cap: null,
+      cell_id: cell_id,
+      zome_name: 'memez_main_zome',
+      fn_name: 'create_score_computation',
+      payload: "(lam [x] 1)",
+      provenance: cell_id[1],
+    });
+    console.log(this.selectedScoreCompHash);
+
+    this.scoreComps = await this.hcInfo.appWs.callZome({
+      cap: null,
+      cell_id: cell_id,
+      zome_name: 'memez_main_zome',
+      fn_name: 'get_score_computations',
+      payload: null,
+      provenance: cell_id[1],
+    });
+    console.log(this.scoreComps);
 
     this.get_memez()
   },
@@ -74,23 +101,25 @@ const App = {
       this.get_memez()
     },
     async get_memez() {
-      let info = await this.hcInfo.appWs.appInfo({
-        // TODO figure out why this works... it shouldn't, I think?
-        installed_app_id: 'test-app',
-      });
-      const cell_id = info.cell_data[0].cell_id;
-      const res = await this.hcInfo.appWs.callZome({
-        cap: null,
-        cell_id: cell_id,
-        zome_name: 'memez_main_zome',
-        fn_name: 'get_all_meme_strings',
-        payload: {
-          params_string: ""
-        },
-        provenance: cell_id[1],
-      });
-      console.log(res);
-      this.memez = res.sort(function(a, b) { return a.opt_score - b.opt_score });
+      if (this.selectedScoreCompHash) {
+        let info = await this.hcInfo.appWs.appInfo({
+          // TODO figure out why this works... it shouldn't, I think?
+          installed_app_id: 'test-app',
+        });
+        const cell_id = info.cell_data[0].cell_id;
+        const res = await this.hcInfo.appWs.callZome({
+          cap: null,
+          cell_id: cell_id,
+          zome_name: 'memez_main_zome',
+          fn_name: 'get_all_meme_strings',
+          payload: this.selectedScoreCompHash,
+          provenance: cell_id[1],
+        });
+        console.log(res);
+        this.memez = res.sort(function(a, b) { return a.opt_score - b.opt_score });
+      } else {
+        console.log("no selectedScoreCompHash")
+      }
     },
   },
   mounted() {

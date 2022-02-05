@@ -59,7 +59,6 @@ fn upload_meme(params: Params) -> ExternResult<HeaderHash> {
     Ok(meme_hh)
 }
 
-// TODO figure out how to send a `()` from JS so we can call without fake Params arg
 #[hdk_extern]
 fn get_all_meme_strings(score_comp_ie_hh: HeaderHash) -> ExternResult<Vec<ScoredMeme>> {
     // let score_comp_ie_hh = HeaderHash::try_from(score_comp_ie_hh_str).map_err(|err|
