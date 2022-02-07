@@ -90,9 +90,7 @@ const App = {
         cell_id: cell_id,
         zome_name: 'memez_main_zome',
         fn_name: 'upload_meme',
-        payload: {
-          params_string: data
-        },
+        payload: data,
         provenance: cell_id[1],
       });
       this.currentStatus = STATUS_INITIAL;

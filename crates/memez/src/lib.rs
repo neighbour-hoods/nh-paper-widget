@@ -12,7 +12,7 @@ use rep_lang_runtime::{
     types::{type_arr, type_int, type_pair, Scheme},
 };
 
-pub const OWNER_TAG: &str = "memez_owner";
+pub const MEME_TAG: &str = "memez_meme";
 
 entry_defs![
     Meme::entry_def(),
@@ -22,18 +22,13 @@ entry_defs![
 ];
 
 #[hdk_entry]
-struct Meme {
+pub struct Meme {
     // encoded img payload
-    img_str: String,
+    pub img_str: String,
 }
 
 #[hdk_entry]
 struct MemeRoot;
-
-#[derive(Debug, Serialize, Deserialize)]
-struct Params {
-    params_string: String,
-}
 
 // for compat with JS
 #[derive(Debug, Serialize, Deserialize)]
@@ -43,18 +38,15 @@ struct ScoredMeme {
 }
 
 #[hdk_extern]
-fn upload_meme(params: Params) -> ExternResult<HeaderHash> {
-    let Params {
-        params_string: p_str,
-    } = params;
-    debug!("received input of length {}", p_str.len());
+fn upload_meme(img_str: String) -> ExternResult<HeaderHash> {
+    debug!("received input of length {}", img_str.len());
 
     create_meme_root_if_needed()?;
 
-    let meme = Meme { img_str: p_str };
+    let meme = Meme { img_str };
     let meme_hh = create_entry(&meme)?;
     let meme_eh = hash_entry(&meme)?;
-    create_link(hash_entry(MemeRoot)?, meme_eh, LinkTag::new(OWNER_TAG))?;
+    create_link(hash_entry(MemeRoot)?, meme_eh, LinkTag::new(MEME_TAG))?;
 
     Ok(meme_hh)
 }
@@ -88,24 +80,12 @@ fn get_all_meme_strings(score_comp_ie_hh: HeaderHash) -> ExternResult<Vec<Scored
         }
     }?;
 
-    let meme_entry_links = get_links(hash_entry(MemeRoot)?, None)?;
-    let meme_strings: Vec<ScoredMeme> = meme_entry_links
-        .into_iter()
-        .map(|lnk| {
+    let meme_entry_links = get_links(hash_entry(MemeRoot)?, Some(LinkTag::new(MEME_TAG)))?;
+    let mut meme_strings: Vec<ScoredMeme> = Vec::new();
+    for lnk in meme_entry_links {
+        let res: ExternResult<ScoredMeme> = {
             let meme_eh = lnk.target;
-
-            // retrieve `Meme` element, decode to entry
-            let element = (match get(meme_eh.clone(), GetOptions::content())? {
-                Some(el) => Ok(el),
-                None => Err(WasmError::Guest(format!(
-                    "could not dereference hash: {}",
-                    meme_eh
-                ))),
-            })?;
-            let meme: Meme = match element.into_inner().1.to_app_option()? {
-                Some(m) => Ok(m),
-                None => Err(WasmError::Guest(format!("non-present arg: {}", meme_eh))),
-            }?;
+            let (_hh, meme) = get_meme(meme_eh.clone())?;
             let opt_score = (score_meme(meme_eh, score_comp_ie_hh.clone())?).map(|(_hh, ie)| {
                 // "adapter" / "converter" should go here and clean up the API
                 match ie.output_flat_value {
@@ -118,12 +98,13 @@ fn get_all_meme_strings(score_comp_ie_hh: HeaderHash) -> ExternResult<Vec<Scored
                 meme_string: meme.img_str,
                 opt_score,
             })
-        })
-        // TODO figure out if we should propagate or filter `Err`s.
-        // there may exist non-Memes which could be linked to the MemeRoot?
-        // although in principle that shouldn't occur, it's possible that it
-        // could "crash" the system by making this section always Err.
-        .collect::<ExternResult<Vec<ScoredMeme>>>()?;
+        };
+
+        match res {
+            Ok(sm) => meme_strings.push(sm),
+            Err(err) => debug!("err in fetching ScoredMeme: {}", err),
+        }
+    }
     Ok(meme_strings)
 }
 
@@ -216,4 +197,19 @@ fn create_score_computation(comp: String) -> ExternResult<HeaderHash> {
     }?;
 
     Ok(hh)
+}
+
+pub fn get_meme(arg_hash: EntryHash) -> ExternResult<(HeaderHash, Meme)> {
+    let element = (match get(arg_hash.clone(), GetOptions::content())? {
+        Some(el) => Ok(el),
+        None => Err(WasmError::Guest(format!(
+            "could not dereference arg: {}",
+            arg_hash
+        ))),
+    })?;
+    let hh = element.header_address().clone();
+    match element.into_inner().1.to_app_option()? {
+        Some(mm) => Ok((hh, mm)),
+        None => Err(WasmError::Guest(format!("non-present arg: {}", arg_hash))),
+    }
 }
