@@ -5,6 +5,75 @@ import { AdminWebsocket, AppWebsocket, InstalledAppInfo } from '@holochain/condu
 
 const STATUS_INITIAL = 0, STATUS_SAVING = 1, STATUS_SUCCESS = 2, STATUS_FAILED = 3;
 
+const score_comp_const_1 = "(lam [x] 1)";
+
+const score_comp_claps_only = `
+(let ([foldl
+       (fix (lam [foldl]
+         (lam [f acc xs]
+           (if (null xs)
+             acc
+             (foldl
+               f
+               (f acc (head xs))
+               (tail xs))))))]
+      [folder
+       (lam [acc tup]
+         (if (== 0 (fst tup))
+             (pair (+ (snd tup) (fst acc))
+                   (snd acc))
+             acc))])
+  (lam [vals]
+    (foldl folder (pair 0 0) vals)))
+`;
+
+const score_comp_deeps_only = `
+(let ([foldl
+       (fix (lam [foldl]
+         (lam [f acc xs]
+           (if (null xs)
+             acc
+             (foldl
+               f
+               (f acc (head xs))
+               (tail xs))))))]
+      [folder
+       (lam [acc tup]
+         (if (== 1 (fst tup))
+             (pair (fst acc)
+                   (+ (snd tup) (snd acc)))
+             acc))])
+  (lam [vals]
+    (foldl folder (pair 0 0) vals)))
+`;
+
+const score_comp_claps_and_deeps_scaled = `
+(let ([foldl
+         (fix (lam [foldl]
+           (lam [f acc xs]
+             (if (null xs)
+               acc
+               (foldl
+                 f
+                 (f acc (head xs))
+                 (tail xs))))))]
+        [claps_scalar 5]
+        [deeps_scalar 7]
+        [folder
+         (lam [acc tup]
+           (if (== 0 (fst tup))
+               (pair (+ (* claps_scalar (snd tup))
+                        (fst acc))
+                     (snd acc))
+               (if (== 1 (fst tup))
+                   (pair (fst acc)
+                         (+ (* deeps_scalar (snd tup))
+                            (snd acc)))
+                   acc)))])
+    (lam [vals]
+      (foldl folder (pair 0 0) vals)))
+`;
+
 const App = {
   name: 'app',
   data() {
@@ -33,14 +102,18 @@ const App = {
       installed_app_id: 'test-app',
     });
     const cell_id = info.cell_data[0].cell_id;
-    this.selectedScoreCompHash = await this.hcInfo.appWs.callZome({
-      cap: null,
-      cell_id: cell_id,
-      zome_name: 'memez_main_zome',
-      fn_name: 'create_score_computation',
-      payload: "(lam [x] 1)",
-      provenance: cell_id[1],
-    });
+
+    const score_comps = [ score_comp_const_1, score_comp_claps_and_deeps_scaled, score_comp_deeps_only, score_comp_claps_only ];
+    for (const score_comp in score_comps) {
+      this.selectedScoreCompHash = await this.hcInfo.appWs.callZome({
+        cap: null,
+        cell_id: cell_id,
+        zome_name: 'memez_main_zome',
+        fn_name: 'create_score_computation',
+        payload: ,
+        provenance: cell_id[1],
+      });
+    }
     console.log(this.selectedScoreCompHash);
 
     this.scoreComps = await this.hcInfo.appWs.callZome({
