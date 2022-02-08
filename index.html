@@ -39,8 +39,8 @@
     <div v-for="meme in memez" style="border: 20px solid #969696;">
         <img style="max-width: 100%;" v-bind:src="`${meme.meme_string}`">
         Score: {{ meme.opt_score ?? "null" }}
-        <button value="clap" onClick='wat(this)'>👏</button>
-        <button value="deep" onClick='wat(this)'>🤿</button>
+        <button @change="react('clap')">👏</button>
+        <button @change="react('deep')">🤿</button>
     </div>
   </div>
 </body>

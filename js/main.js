@@ -195,6 +195,9 @@ const App = {
         console.log("no selectedScoreCompHash")
       }
     },
+    async react(type) {
+      console.log("react: " + type);
+    }
   },
   mounted() {
     this.reset();

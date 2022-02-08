@@ -2,8 +2,8 @@ use hdk::prelude::*;
 
 use common::{
     create_interchange_entry_full, create_interchange_entry_parse,
-    get_interchange_entries_which_unify, get_interchange_entry_by_headerhash,
-    get_linked_interchange_entries_which_unify, mk_application_ie, pack_ies_into_list_ie,
+    get_interchange_entries_which_unify, get_interchange_entry,
+    get_interchange_entry_by_headerhash, mk_application_ie, pack_ies_into_list_ie,
     CreateInterchangeEntryInput, CreateInterchangeEntryInputParse, InterchangeEntry, SchemeEntry,
 };
 use rep_lang_core::{
@@ -17,9 +17,7 @@ use rep_lang_runtime::{
 };
 
 pub const MEME_TAG: &str = "memez_meme";
-
-// TODO fix this - it's leakage of private RI info out to us
-pub const RI_OWNER_TAG: &str = "rep_interchange_owner";
+pub const REACTION_TAG: &str = "memez_reaction";
 
 entry_defs![
     Meme::entry_def(),
@@ -66,26 +64,8 @@ fn get_all_meme_strings(score_comp_ie_hh: HeaderHash) -> ExternResult<Vec<Scored
     // )?;
     let (_eh, score_comp_ie) = get_interchange_entry_by_headerhash(score_comp_ie_hh.clone())?;
 
-    // check score_comp is valid
-    let () = {
-        // check IE scheme is right
-        let mut is = InferState::new();
-
-        let target_sc = score_comp_sc();
-        let Scheme(_, normalized_target_ty) = normalize(&mut is, target_sc.clone());
-
-        // check unification of normalized type
-        let Scheme(_, normalized_ie_ty) = normalize(&mut is, score_comp_ie.output_scheme.clone());
-        // we are only interested in whether a type error occured
-        if unifies(normalized_target_ty.clone(), normalized_ie_ty).is_ok() {
-            Ok(())
-        } else {
-            Err(WasmError::Guest(format!(
-                "unification error: score comp has wrong type.\n\tactual: {:?}\n\texpected: {:?}",
-                score_comp_ie.output_scheme, target_sc,
-            )))
-        }
-    }?;
+    // check IE scheme is right
+    let () = check_schemes_unify(score_comp_sc(), score_comp_ie.output_scheme.clone())?;
 
     let meme_entry_links = get_links(hash_entry(MemeRoot)?, Some(LinkTag::new(MEME_TAG)))?;
     let mut meme_strings: Vec<ScoredMeme> = Vec::new();
@@ -132,13 +112,22 @@ fn score_meme(
     meme_eh: EntryHash,
     score_comp_ie_hh: HeaderHash,
 ) -> ExternResult<Option<(HeaderHash, InterchangeEntry)>> {
-    let ty = type_pair(type_int(), type_int());
-    let sc = Scheme(Vec::new(), ty);
+    let reaction_ie_links = get_links(meme_eh, Some(LinkTag::new(REACTION_TAG)))?;
+    let mut reaction_ie_hh_s: Vec<HeaderHash> = vec![];
+    for link in reaction_ie_links {
+        match get_interchange_entry(link.target) {
+            Ok((hh, ie)) => {
+                let () = check_schemes_unify(reaction_sc(), ie.output_scheme)?;
+                reaction_ie_hh_s.push(hh);
+            }
+            Err(err) => {
+                debug!("get_interchange_entry: err: {}", err);
+            }
+        }
+    }
 
-    let reaction_ies = get_linked_interchange_entries_which_unify((meme_eh, Some(sc)))?;
-
-    let reaction_list_ie = pack_ies_into_list_ie(reaction_ies.into_iter().map(|t| t.0).collect())?;
-
+    let reaction_list_ie = pack_ies_into_list_ie(reaction_ie_hh_s)?;
+    debug!("{:?}", reaction_list_ie);
     let reaction_list_ie_hh = create_entry(&reaction_list_ie)?;
     let score_comp_application_ie = mk_application_ie(vec![score_comp_ie_hh, reaction_list_ie_hh])?;
 
@@ -175,7 +164,7 @@ fn react_to_meme(rtmi: ReactToMemeInput) -> ExternResult<bool> {
             );
             let (_ie_hh, ie_eh, _ie) =
                 create_interchange_entry_full(CreateInterchangeEntryInput { expr, args: vec![] })?;
-            let _link_hh = create_link(rtmi.meme_eh, ie_eh, LinkTag::new(RI_OWNER_TAG));
+            let _link_hh = create_link(rtmi.meme_eh, ie_eh, LinkTag::new(REACTION_TAG));
             Ok(true)
         }
     }
@@ -185,6 +174,11 @@ fn react_to_meme(rtmi: ReactToMemeInput) -> ExternResult<bool> {
 struct ScoreComputation {
     expr_str: String,
     ie_hh: HeaderHash,
+}
+
+fn reaction_sc() -> Scheme {
+    let target_ty = type_pair(type_int(), type_int());
+    Scheme(Vec::new(), target_ty)
 }
 
 fn score_comp_sc() -> Scheme {
@@ -207,6 +201,24 @@ fn get_score_computations(_: ()) -> ExternResult<Vec<ScoreComputation>> {
         .collect())
 }
 
+fn check_schemes_unify(expected_sc: Scheme, actual_sc: Scheme) -> ExternResult<()> {
+    let mut is = InferState::new();
+
+    let Scheme(_, normalized_expected_ty) = normalize(&mut is, expected_sc.clone());
+
+    // check unification of normalized type
+    let Scheme(_, normalized_actual_ty) = normalize(&mut is, actual_sc.clone());
+    // we are only interested in whether a type error occured
+    if unifies(normalized_expected_ty.clone(), normalized_actual_ty).is_ok() {
+        Ok(())
+    } else {
+        Err(WasmError::Guest(format!(
+            "unification error: score comp has wrong type.\n\tactual: {:?}\n\texpected: {:?}",
+            actual_sc, expected_sc,
+        )))
+    }
+}
+
 /// takes a string which should parse to a `rep_lang` Expr with type
 ///   List (Int, Int) -> Int
 /// and returns a string representation of the `HeaderHash` of the created
@@ -221,24 +233,7 @@ fn create_score_computation(comp: String) -> ExternResult<HeaderHash> {
     let (hh, ie) = create_interchange_entry_parse(input)?;
 
     // check IE scheme is right
-    let () = {
-        let mut is = InferState::new();
-
-        let target_sc = score_comp_sc();
-        let Scheme(_, normalized_target_ty) = normalize(&mut is, target_sc.clone());
-
-        // check unification of normalized type
-        let Scheme(_, normalized_ie_ty) = normalize(&mut is, ie.output_scheme.clone());
-        // we are only interested in whether a type error occured
-        if unifies(normalized_target_ty.clone(), normalized_ie_ty).is_ok() {
-            Ok(())
-        } else {
-            Err(WasmError::Guest(format!(
-                "unification error: score comp has wrong type.\n\tactual: {:?}\n\texpected: {:?}",
-                ie.output_scheme, target_sc,
-            )))
-        }
-    }?;
+    let () = check_schemes_unify(score_comp_sc(), ie.output_scheme.clone())?;
 
     Ok(hh)
 }
