@@ -9,7 +9,7 @@ use common::{
 use rep_lang_runtime::{
     eval::{FlatValue, Value},
     infer::{normalize, unifies, InferState},
-    types::{type_arr, type_int, type_pair, Scheme},
+    types::{type_arr, type_int, type_list, type_pair, Scheme},
 };
 
 pub const MEME_TAG: &str = "memez_meme";
@@ -63,8 +63,7 @@ fn get_all_meme_strings(score_comp_ie_hh: HeaderHash) -> ExternResult<Vec<Scored
         // check IE scheme is right
         let mut is = InferState::new();
 
-        let target_ty = type_arr(type_pair(type_int(), type_int()), type_int());
-        let target_sc = Scheme(Vec::new(), target_ty);
+        let target_sc = score_comp_sc();
         let Scheme(_, normalized_target_ty) = normalize(&mut is, target_sc.clone());
 
         // check unification of normalized type
@@ -147,10 +146,14 @@ struct ScoreComputation {
     ie_hh: HeaderHash,
 }
 
+fn score_comp_sc() -> Scheme {
+    let target_ty = type_arr(type_list(type_pair(type_int(), type_int())), type_int());
+    Scheme(Vec::new(), target_ty)
+}
+
 #[hdk_extern]
 fn get_score_computations(_: ()) -> ExternResult<Vec<ScoreComputation>> {
-    let target_ty = type_arr(type_pair(type_int(), type_int()), type_int());
-    let target_sc = Scheme(Vec::new(), target_ty);
+    let target_sc = score_comp_sc();
     let score_comps = get_interchange_entries_which_unify(Some(target_sc))?;
 
     Ok(score_comps
@@ -169,6 +172,7 @@ fn get_score_computations(_: ()) -> ExternResult<Vec<ScoreComputation>> {
 /// InterchangeEntry which houses the score computation.
 #[hdk_extern]
 fn create_score_computation(comp: String) -> ExternResult<HeaderHash> {
+    debug!("{}", comp);
     let input = CreateInterchangeEntryInputParse {
         expr: comp,
         args: vec![],
@@ -179,8 +183,7 @@ fn create_score_computation(comp: String) -> ExternResult<HeaderHash> {
     let () = {
         let mut is = InferState::new();
 
-        let target_ty = type_arr(type_pair(type_int(), type_int()), type_int());
-        let target_sc = Scheme(Vec::new(), target_ty);
+        let target_sc = score_comp_sc();
         let Scheme(_, normalized_target_ty) = normalize(&mut is, target_sc.clone());
 
         // check unification of normalized type

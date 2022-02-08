@@ -20,11 +20,10 @@ const score_comp_claps_only = `
       [folder
        (lam [acc tup]
          (if (== 0 (fst tup))
-             (pair (+ (snd tup) (fst acc))
-                   (snd acc))
+             (+ (snd tup) acc)
              acc))])
   (lam [vals]
-    (foldl folder (pair 0 0) vals)))
+    (foldl folder 0 vals)))
 `;
 
 const score_comp_deeps_only = `
@@ -40,11 +39,10 @@ const score_comp_deeps_only = `
       [folder
        (lam [acc tup]
          (if (== 1 (fst tup))
-             (pair (fst acc)
-                   (+ (snd tup) (snd acc)))
+             (+ (snd tup) acc)
              acc))])
   (lam [vals]
-    (foldl folder (pair 0 0) vals)))
+    (foldl folder 0 vals)))
 `;
 
 const score_comp_claps_and_deeps_scaled = `
@@ -71,7 +69,9 @@ const score_comp_claps_and_deeps_scaled = `
                             (snd acc)))
                    acc)))])
     (lam [vals]
-      (foldl folder (pair 0 0) vals)))
+      (let ([res (foldl folder (pair 0 0) vals)])
+        (+ (fst res)
+           (snd res)))))
 `;
 
 const App = {
@@ -104,16 +104,17 @@ const App = {
     const cell_id = info.cell_data[0].cell_id;
 
     const score_comps = [ score_comp_const_1, score_comp_claps_and_deeps_scaled, score_comp_deeps_only, score_comp_claps_only ];
-    for (const score_comp in score_comps) {
+    for (let i = 0; i < score_comps.length; i++) {
       this.selectedScoreCompHash = await this.hcInfo.appWs.callZome({
         cap: null,
         cell_id: cell_id,
         zome_name: 'memez_main_zome',
         fn_name: 'create_score_computation',
-        payload: ,
+        payload: score_comps[i],
         provenance: cell_id[1],
       });
     }
+    console.log("selectedScoreCompHash: ");
     console.log(this.selectedScoreCompHash);
 
     this.scoreComps = await this.hcInfo.appWs.callZome({
@@ -124,6 +125,7 @@ const App = {
       payload: null,
       provenance: cell_id[1],
     });
+    console.log("scoreComps: ");
     console.log(this.scoreComps);
 
     this.get_memez()
@@ -186,6 +188,7 @@ const App = {
           payload: this.selectedScoreCompHash,
           provenance: cell_id[1],
         });
+        console.log("all meme strings: ");
         console.log(res);
         this.memez = res.sort(function(a, b) { return a.opt_score - b.opt_score });
       } else {
