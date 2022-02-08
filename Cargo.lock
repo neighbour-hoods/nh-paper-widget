@@ -437,6 +437,7 @@ version = "0.1.0"
 dependencies = [
  "common",
  "hdk",
+ "rep_lang_core",
  "rep_lang_runtime",
  "serde",
 ]

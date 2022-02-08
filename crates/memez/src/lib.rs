@@ -1,10 +1,14 @@
 use hdk::prelude::*;
 
 use common::{
-    create_interchange_entry_parse, get_interchange_entries_which_unify,
-    get_interchange_entry_by_headerhash, get_linked_interchange_entries_which_unify,
-    mk_application_ie, pack_ies_into_list_ie, CreateInterchangeEntryInputParse, InterchangeEntry,
-    SchemeEntry,
+    create_interchange_entry_full, create_interchange_entry_parse,
+    get_interchange_entries_which_unify, get_interchange_entry_by_headerhash,
+    get_linked_interchange_entries_which_unify, mk_application_ie, pack_ies_into_list_ie,
+    CreateInterchangeEntryInput, CreateInterchangeEntryInputParse, InterchangeEntry, SchemeEntry,
+};
+use rep_lang_core::{
+    abstract_syntax::{Expr, Lit, PrimOp},
+    app,
 };
 use rep_lang_runtime::{
     eval::{FlatValue, Value},
@@ -13,6 +17,9 @@ use rep_lang_runtime::{
 };
 
 pub const MEME_TAG: &str = "memez_meme";
+
+// TODO fix this - it's leakage of private RI info out to us
+pub const RI_OWNER_TAG: &str = "rep_interchange_owner";
 
 entry_defs![
     Meme::entry_def(),
@@ -35,6 +42,7 @@ struct MemeRoot;
 struct ScoredMeme {
     meme_string: String,
     opt_score: Option<i64>,
+    eh: EntryHash,
 }
 
 #[hdk_extern]
@@ -85,17 +93,19 @@ fn get_all_meme_strings(score_comp_ie_hh: HeaderHash) -> ExternResult<Vec<Scored
         let res: ExternResult<ScoredMeme> = {
             let meme_eh = lnk.target;
             let (_hh, meme) = get_meme(meme_eh.clone())?;
-            let opt_score = (score_meme(meme_eh, score_comp_ie_hh.clone())?).map(|(_hh, ie)| {
-                // "adapter" / "converter" should go here and clean up the API
-                match ie.output_flat_value {
-                    FlatValue(Value::VInt(x)) => x,
-                    _ => panic!("impossible: type inference broken"),
-                }
-            });
+            let opt_score =
+                (score_meme(meme_eh.clone(), score_comp_ie_hh.clone())?).map(|(_hh, ie)| {
+                    // "adapter" / "converter" should go here and clean up the API
+                    match ie.output_flat_value {
+                        FlatValue(Value::VInt(x)) => x,
+                        _ => panic!("impossible: type inference broken"),
+                    }
+                });
 
             Ok(ScoredMeme {
                 meme_string: meme.img_str,
                 opt_score,
+                eh: meme_eh,
             })
         };
 
@@ -138,6 +148,37 @@ fn score_meme(
         score_comp_application_ie_hh,
         score_comp_application_ie,
     )))
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct ReactToMemeInput {
+    meme_eh: EntryHash,
+    reaction_name: String,
+    count: u32,
+}
+
+#[hdk_extern]
+fn react_to_meme(rtmi: ReactToMemeInput) -> ExternResult<bool> {
+    let opt_tag: Option<i64> = match rtmi.reaction_name.as_str() {
+        "claps" => Some(0),
+        "deeps" => Some(1),
+        // unknown reaction
+        _ => None,
+    };
+    match opt_tag {
+        // unknown reaction - return false
+        None => Ok(false),
+        Some(tag) => {
+            let expr = app!(
+                app!(Expr::Prim(PrimOp::Pair), Expr::Lit(Lit::LInt(tag))),
+                Expr::Lit(Lit::LInt(rtmi.count.into()))
+            );
+            let (_ie_hh, ie_eh, _ie) =
+                create_interchange_entry_full(CreateInterchangeEntryInput { expr, args: vec![] })?;
+            let _link_hh = create_link(rtmi.meme_eh, ie_eh, LinkTag::new(RI_OWNER_TAG));
+            Ok(true)
+        }
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize)]
