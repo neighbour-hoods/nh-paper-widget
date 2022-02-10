@@ -8,8 +8,8 @@ edition = "2018"
 hdk = "0.0.117"
 serde = "1"
 
-common = { git = "https://github.com/neighbour-hoods/rep_interchange.git", rev = "ea7a06257f01ba936e5cefc952d281b977c0e5c8" }
-rep_lang_runtime = { git = "https://github.com/neighbour-hoods/rep_lang.git", rev = "5a0979f36d8e0fa273aff238264a6cc5e758b6b64", features = ["hc"] }
+common = { git = "https://github.com/neighbour-hoods/rep_interchange.git", rev = "b9ffcc769548e1a3e3bc03da52c79fa2ab587f6f" }
+rep_lang_runtime = { git = "https://github.com/neighbour-hoods/rep_lang.git", rev = "5d81b5ced5ff29d6c9f0d436bde134993c148bd6", features = ["hc"] }
 
 [lib]
 path = "src/lib.rs"
