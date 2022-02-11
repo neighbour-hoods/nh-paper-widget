@@ -65,7 +65,7 @@ fn get_all_meme_strings(score_comp_ie_hh: HeaderHash) -> ExternResult<Vec<Scored
     let (_eh, score_comp_ie) = get_interchange_entry_by_headerhash(score_comp_ie_hh.clone())?;
 
     // check IE scheme is right
-    let () = check_schemes_unify(score_comp_sc(), score_comp_ie.output_scheme.clone())?;
+    let () = check_schemes_unify(score_comp_sc(), score_comp_ie.output_scheme)?;
 
     let meme_entry_links = get_links(hash_entry(MemeRoot)?, Some(LinkTag::new(MEME_TAG)))?;
     let mut meme_strings: Vec<ScoredMeme> = Vec::new();
@@ -209,7 +209,7 @@ fn check_schemes_unify(expected_sc: Scheme, actual_sc: Scheme) -> ExternResult<(
     // check unification of normalized type
     let Scheme(_, normalized_actual_ty) = normalize(&mut is, actual_sc.clone());
     // we are only interested in whether a type error occured
-    if unifies(normalized_expected_ty.clone(), normalized_actual_ty).is_ok() {
+    if unifies(normalized_expected_ty, normalized_actual_ty).is_ok() {
         Ok(())
     } else {
         Err(WasmError::Guest(format!(
@@ -233,7 +233,7 @@ fn create_score_computation(comp: String) -> ExternResult<HeaderHash> {
     let (hh, ie) = create_interchange_entry_parse(input)?;
 
     // check IE scheme is right
-    let () = check_schemes_unify(score_comp_sc(), ie.output_scheme.clone())?;
+    let () = check_schemes_unify(score_comp_sc(), ie.output_scheme)?;
 
     Ok(hh)
 }
