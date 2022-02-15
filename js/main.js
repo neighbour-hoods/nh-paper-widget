@@ -7,7 +7,7 @@ const STATUS_INITIAL = 0, STATUS_SAVING = 1, STATUS_SUCCESS = 2, STATUS_FAILED =
 
 const score_comp_const_1 = "(lam [x] 1)";
 
-const score_comp_claps_only = `
+const score_comp_lulz_only = `
 (let ([foldl
        (fix (lam [foldl]
          (lam [f acc xs]
@@ -26,7 +26,7 @@ const score_comp_claps_only = `
     (foldl folder 0 vals)))
 `;
 
-const score_comp_deeps_only = `
+const score_comp_mbz_only = `
 (let ([foldl
        (fix (lam [foldl]
          (lam [f acc xs]
@@ -45,7 +45,7 @@ const score_comp_deeps_only = `
     (foldl folder 0 vals)))
 `;
 
-const score_comp_claps_and_deeps_scaled = `
+const score_comp_lulz_and_mbz_scaled = `
 (let ([foldl
          (fix (lam [foldl]
            (lam [f acc xs]
@@ -55,17 +55,17 @@ const score_comp_claps_and_deeps_scaled = `
                  f
                  (f acc (head xs))
                  (tail xs))))))]
-        [claps_scalar 5]
-        [deeps_scalar 7]
+        [lulz_scalar 5]
+        [mbz_scalar 7]
         [folder
          (lam [acc tup]
            (if (== 0 (fst tup))
-               (pair (+ (* claps_scalar (snd tup))
+               (pair (+ (* lulz_scalar (snd tup))
                         (fst acc))
                      (snd acc))
                (if (== 1 (fst tup))
                    (pair (fst acc)
-                         (+ (* deeps_scalar (snd tup))
+                         (+ (* mbz_scalar (snd tup))
                             (snd acc)))
                    acc)))])
     (lam [vals]
@@ -103,7 +103,7 @@ const App = {
     });
     const cell_id = info.cell_data[0].cell_id;
 
-    const score_comps = [ score_comp_const_1, score_comp_claps_and_deeps_scaled, score_comp_deeps_only, score_comp_claps_only ];
+    const score_comps = [ score_comp_const_1, score_comp_lulz_and_mbz_scaled, score_comp_mbz_only, score_comp_lulz_only ];
     for (let i = 0; i < score_comps.length; i++) {
       this.selectedScoreCompHash = await this.hcInfo.appWs.callZome({
         cap: null,

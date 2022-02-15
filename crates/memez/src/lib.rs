@@ -149,8 +149,8 @@ struct ReactToMemeInput {
 #[hdk_extern]
 fn react_to_meme(rtmi: ReactToMemeInput) -> ExternResult<bool> {
     let opt_tag: Option<i64> = match rtmi.reaction_name.as_str() {
-        "claps" => Some(0),
-        "deeps" => Some(1),
+        "lulz" => Some(0),
+        "mbz" => Some(1),
         // unknown reaction
         _ => None,
     };
