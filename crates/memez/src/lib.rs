@@ -127,7 +127,7 @@ fn score_meme(
     }
 
     let reaction_list_ie = pack_ies_into_list_ie(reaction_ie_hh_s)?;
-    debug!("{:?}", reaction_list_ie);
+    debug!("reaction_list_ie: {:?}", reaction_list_ie);
     let reaction_list_ie_hh = create_entry(&reaction_list_ie)?;
     let score_comp_application_ie = mk_application_ie(vec![score_comp_ie_hh, reaction_list_ie_hh])?;
 
