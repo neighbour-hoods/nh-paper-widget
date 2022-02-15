@@ -191,7 +191,7 @@ const App = {
         });
         console.log("all meme strings: ");
         console.log(res);
-        this.memez = res.sort(function(a, b) { return a.opt_score - b.opt_score });
+        this.memez = res.sort(function(a, b) { return b.opt_score - a.opt_score });
       } else {
         console.log("no selectedScoreCompHash")
       }
