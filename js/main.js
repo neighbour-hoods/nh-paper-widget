@@ -5,9 +5,13 @@ import { AdminWebsocket, AppWebsocket, InstalledAppInfo } from '@holochain/condu
 
 const STATUS_INITIAL = 0, STATUS_SAVING = 1, STATUS_SUCCESS = 2, STATUS_FAILED = 3;
 
-const score_comp_const_1 = "(lam [x] 1)";
 
-const score_comp_lulz_only = `
+const score_comps = [
+  { name: "score_comp_const_1",
+    comp: "(lam [x] 1)",
+  },
+  { name: "score_comp_lulz_only",
+    comp:`
 (let ([foldl
        (fix (lam [foldl]
          (lam [f acc xs]
@@ -24,9 +28,10 @@ const score_comp_lulz_only = `
              acc))])
   (lam [vals]
     (foldl folder 0 vals)))
-`;
-
-const score_comp_mbz_only = `
+`,
+  },
+  { name: "score_comp_mbz_only",
+    comp: `
 (let ([foldl
        (fix (lam [foldl]
          (lam [f acc xs]
@@ -43,9 +48,10 @@ const score_comp_mbz_only = `
              acc))])
   (lam [vals]
     (foldl folder 0 vals)))
-`;
-
-const score_comp_lulz_and_mbz_scaled = `
+`,
+  },
+  { name: "score_comp_lulz_and_mbz_scaled",
+    comp: `
 (let ([foldl
          (fix (lam [foldl]
            (lam [f acc xs]
@@ -72,7 +78,9 @@ const score_comp_lulz_and_mbz_scaled = `
       (let ([res (foldl folder (pair 0 0) vals)])
         (+ (fst res)
            (snd res)))))
-`;
+`,
+  }
+];
 
 const App = {
   name: 'app',
@@ -103,7 +111,6 @@ const App = {
     });
     const cell_id = info.cell_data[0].cell_id;
 
-    const score_comps = [ score_comp_const_1, score_comp_lulz_and_mbz_scaled, score_comp_mbz_only, score_comp_lulz_only ];
     for (let i = 0; i < score_comps.length; i++) {
       this.selectedScoreCompHash = await this.hcInfo.appWs.callZome({
         cap: null,

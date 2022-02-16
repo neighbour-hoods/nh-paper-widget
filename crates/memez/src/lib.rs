@@ -1,8 +1,7 @@
 use hdk::prelude::*;
 
 use common::{
-    create_interchange_entry_full, create_interchange_entry_parse,
-    get_interchange_entries_which_unify, get_interchange_entry,
+    create_interchange_entry_full, create_interchange_entry_parse, get_interchange_entry,
     get_interchange_entry_by_headerhash, mk_application_ie, pack_ies_into_list_ie,
     CreateInterchangeEntryInput, CreateInterchangeEntryInputParse, InterchangeEntry, SchemeEntry,
 };
@@ -18,10 +17,13 @@ use rep_lang_runtime::{
 
 pub const MEME_TAG: &str = "memez_meme";
 pub const REACTION_TAG: &str = "memez_reaction";
+pub const NAMED_SCORE_COMP_TAG: &str = "memez_named_score_comp";
 
 entry_defs![
     Meme::entry_def(),
     MemeRoot::entry_def(),
+    NamedScoreComputation::entry_def(),
+    NamedScoreComputationRoot::entry_def(),
     InterchangeEntry::entry_def(),
     SchemeEntry::entry_def()
 ];
@@ -58,11 +60,12 @@ fn upload_meme(img_str: String) -> ExternResult<HeaderHash> {
 }
 
 #[hdk_extern]
-fn get_all_meme_strings(score_comp_ie_hh: HeaderHash) -> ExternResult<Vec<ScoredMeme>> {
+fn get_all_meme_strings(nsc_eh: EntryHash) -> ExternResult<Vec<ScoredMeme>> {
     // let score_comp_ie_hh = HeaderHash::try_from(score_comp_ie_hh_str).map_err(|err|
     //     WasmError::Guest(format!("err: {}", err))
     // )?;
-    let (_eh, score_comp_ie) = get_interchange_entry_by_headerhash(score_comp_ie_hh.clone())?;
+    let (_nsc_hh, nsc) = get_nsc(nsc_eh)?;
+    let (_eh, score_comp_ie) = get_interchange_entry_by_headerhash(nsc.score_comp_ie_hh.clone())?;
 
     // check IE scheme is right
     let () = check_schemes_unify(score_comp_sc(), score_comp_ie.output_scheme)?;
@@ -74,7 +77,7 @@ fn get_all_meme_strings(score_comp_ie_hh: HeaderHash) -> ExternResult<Vec<Scored
             let meme_eh = lnk.target;
             let (_hh, meme) = get_meme(meme_eh.clone())?;
             let opt_score =
-                (score_meme(meme_eh.clone(), score_comp_ie_hh.clone())?).map(|(_hh, ie)| {
+                (score_meme(meme_eh.clone(), nsc.score_comp_ie_hh.clone())?).map(|(_hh, ie)| {
                     // "adapter" / "converter" should go here and clean up the API
                     match ie.output_flat_value {
                         FlatValue(Value::VInt(x)) => x,
@@ -172,8 +175,9 @@ fn react_to_meme(rtmi: ReactToMemeInput) -> ExternResult<bool> {
 
 #[derive(Debug, Serialize, Deserialize)]
 struct ScoreComputation {
+    name: String,
     expr_str: String,
-    ie_hh: HeaderHash,
+    nsc_eh: EntryHash,
 }
 
 fn reaction_sc() -> Scheme {
@@ -188,17 +192,53 @@ fn score_comp_sc() -> Scheme {
 
 #[hdk_extern]
 fn get_score_computations(_: ()) -> ExternResult<Vec<ScoreComputation>> {
-    let target_sc = score_comp_sc();
-    let score_comps = get_interchange_entries_which_unify(Some(target_sc))?;
+    let mut score_comps: Vec<ScoreComputation> = vec![];
+    for lnk in (get_links(
+        hash_entry(NamedScoreComputationRoot)?,
+        Some(LinkTag::new(NAMED_SCORE_COMP_TAG)),
+    )?)
+    .iter()
+    {
+        let res: ExternResult<ScoreComputation> = {
+            let nsc_eh = lnk.target.clone();
 
-    Ok(score_comps
-        .into_iter()
-        .map(|(hh, ie)| {
+            let (_nsc_hh, nsc) = get_nsc(nsc_eh.clone())?;
+            let (_ie_eh, ie) = get_interchange_entry_by_headerhash(nsc.score_comp_ie_hh)?;
+
+            let () = check_schemes_unify(score_comp_sc(), ie.output_scheme)?;
+
             let expr_str = format!("{:?}", ie.operator);
-            let ie_hh = hh;
-            ScoreComputation { expr_str, ie_hh }
-        })
-        .collect())
+            Ok(ScoreComputation {
+                name: nsc.name,
+                expr_str,
+                nsc_eh,
+            })
+        };
+        match res {
+            Ok(score_comp) => {
+                score_comps.push(score_comp);
+            }
+            Err(err) => debug!("get_score_computations: error: {}", err),
+        }
+    }
+
+    Ok(score_comps)
+}
+
+fn get_nsc(nsc_eh: EntryHash) -> ExternResult<(HeaderHash, NamedScoreComputation)> {
+    let element = (match get(nsc_eh.clone(), GetOptions::content())? {
+        Some(el) => Ok(el),
+        None => Err(WasmError::Guest(format!(
+            "could not dereference arg: {}",
+            nsc_eh
+        ))),
+    })?;
+    let nsc_hh = element.header_address().clone();
+    let nsc: NamedScoreComputation = (match element.into_inner().1.to_app_option()? {
+        Some(nsc) => Ok(nsc),
+        None => Err(WasmError::Guest(format!("non-present arg: {}", nsc_eh))),
+    })?;
+    Ok((nsc_hh, nsc))
 }
 
 fn check_schemes_unify(expected_sc: Scheme, actual_sc: Scheme) -> ExternResult<()> {
@@ -219,23 +259,66 @@ fn check_schemes_unify(expected_sc: Scheme, actual_sc: Scheme) -> ExternResult<(
     }
 }
 
-/// takes a string which should parse to a `rep_lang` Expr with type
+#[derive(Debug, Serialize, Deserialize)]
+struct CreateScoreComputationInput {
+    name: String,
+    comp: String,
+}
+
+#[hdk_entry]
+struct NamedScoreComputationRoot;
+
+/// returns true if created, false if already exists
+fn create_nsc_root_if_needed() -> ExternResult<bool> {
+    match get(
+        hash_entry(&NamedScoreComputationRoot)?,
+        GetOptions::content(),
+    )? {
+        None => {
+            let _hh = create_entry(&NamedScoreComputationRoot)?;
+            Ok(true)
+        }
+        Some(_) => Ok(false),
+    }
+}
+
+#[hdk_entry]
+struct NamedScoreComputation {
+    name: String,
+    score_comp_ie_hh: HeaderHash,
+}
+
+/// takes a string name, and a string which should parse to a `rep_lang` Expr
+/// with type:
 ///   List (Int, Int) -> Int
-/// and returns a string representation of the `HeaderHash` of the created
-/// InterchangeEntry which houses the score computation.
+/// and returns the `HeaderHash` of the created `NamedScoreComputation`, which
+/// holds the name and the HeaderHash of the InterchangeEntry which houses the
+/// score computation.
 #[hdk_extern]
-fn create_score_computation(comp: String) -> ExternResult<HeaderHash> {
-    debug!("{}", comp);
+fn create_score_computation(csci: CreateScoreComputationInput) -> ExternResult<EntryHash> {
+    debug!("{}", csci.comp);
     let input = CreateInterchangeEntryInputParse {
-        expr: comp,
+        expr: csci.comp,
         args: vec![],
     };
-    let (hh, ie) = create_interchange_entry_parse(input)?;
+    let (ie_hh, ie) = create_interchange_entry_parse(input)?;
 
     // check IE scheme is right
     let () = check_schemes_unify(score_comp_sc(), ie.output_scheme)?;
 
-    Ok(hh)
+    let nsc = NamedScoreComputation {
+        name: csci.name,
+        score_comp_ie_hh: ie_hh,
+    };
+    let _nsc_hh = create_entry(&nsc)?;
+    let nsc_eh = hash_entry(&nsc)?;
+    create_nsc_root_if_needed()?;
+    create_link(
+        hash_entry(NamedScoreComputationRoot)?,
+        nsc_eh.clone(),
+        LinkTag::new(NAMED_SCORE_COMP_TAG),
+    )?;
+    Ok(nsc_eh)
 }
 
 pub fn get_meme(arg_hash: EntryHash) -> ExternResult<(HeaderHash, Meme)> {
