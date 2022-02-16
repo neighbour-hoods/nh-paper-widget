@@ -14,6 +14,7 @@
 </head>
 
 <body>
+  <section id="general-wrapper">
   <div id="app">
     <div class="container">
       <!--UPLOAD-->
@@ -52,13 +53,14 @@
     <div v-for="score_comp in scoreComps">
         {{ score_comp.expr }}
     </div>
-    <div v-for="meme in memez" style="border: 20px solid #969696;">
+    <div v-for="meme in memez" class="uploaded-meme">
         <img style="max-width: 100%;" v-bind:src="`${meme.meme_string}`">
         Score: {{ meme.opt_score ?? "null" }}
         <button v-on:click="react(meme.eh, 'lulz')">😂</button>
         <button v-on:click="react(meme.eh, 'mbz')">🤯</button>
     </div>
   </div>
+</section>
 </body>
 
 </html>
