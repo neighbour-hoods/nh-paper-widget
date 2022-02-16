@@ -103,8 +103,7 @@ const App = {
     });
     const cell_id = info.cell_data[0].cell_id;
 
-    const score_comps = [ score_comp_lulz_only ];
-    // const score_comps = [ score_comp_const_1, score_comp_lulz_and_mbz_scaled, score_comp_mbz_only, score_comp_lulz_only ];
+    const score_comps = [ score_comp_const_1, score_comp_lulz_and_mbz_scaled, score_comp_mbz_only, score_comp_lulz_only ];
     for (let i = 0; i < score_comps.length; i++) {
       this.selectedScoreCompHash = await this.hcInfo.appWs.callZome({
         cap: null,
@@ -216,6 +215,11 @@ const App = {
         provenance: cell_id[1],
       });
       console.log("react_to_meme success flag: " + flag);
+    },
+    async set_score_comp(scoreCompHash) {
+      console.log("set_score_comp: " + scoreCompHash);
+      this.selectedScoreCompHash = scoreCompHash;
+      this.get_memez()
     }
   },
   mounted() {

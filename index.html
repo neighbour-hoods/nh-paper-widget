@@ -32,6 +32,22 @@
       </form>
   </div>
 
+  <div>
+    <label for="score_comps">choose a score computation:</label>
+    <div id="score_comps">
+      <label v-for="scoreComp in scoreComps">
+        <input
+          type="radio"
+          :value="scoreComp.ie_hh"
+          :checked="selectedScoreCompHash == scoreComp.ie_hh"
+          @change="set_score_comp(scoreComp.ie_hh)"
+        >
+        {{scoreComp.expr_str}}
+        </br>
+      </label>
+    </div>
+  </div>
+
   <div class="container">
     <div v-for="score_comp in scoreComps">
         {{ score_comp.expr }}
