@@ -49,6 +49,8 @@
     </div>
   </div>
 
+  <button v-on:click="get_memez()">refresh feed</button>
+
   <div class="container">
     <div v-for="score_comp in scoreComps">
         {{ score_comp.expr }}
