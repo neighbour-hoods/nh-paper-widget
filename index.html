@@ -49,6 +49,24 @@
     </div>
   </div>
 
+  <div>
+    <form @submit.prevent="handleScoreCompSubmit">
+      <label for="name">name</label>
+      <input type="name" id="name" v-model="scoreCompCreateForm.name" required />
+
+      <label for="comp">expression</label>
+      <textarea
+        id="comp"
+        cols="30"
+        rows="10"
+        v-model="scoreCompCreateForm.comp"
+        required
+      ></textarea>
+
+      <button type="submit">submit</button>
+    </form>
+  </div>
+
   <button v-on:click="get_memez()">refresh feed</button>
 
   <div class="container">

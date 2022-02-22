@@ -92,6 +92,10 @@ const App = {
       memez: [],
       scoreComps: [],
       selectedScoreCompHash: null,
+      scoreCompCreateForm: {
+        name: "my cool score comp",
+        comp: "(lam [x] 1)",
+      },
     }
   },
   async created () {
@@ -105,24 +109,15 @@ const App = {
     };
     this.hcInfo = hcInfo;
 
+    for (let i = 0; i < score_comps.length; i++) {
+      await this.create_score_comp(score_comps[i]);
+    }
+
     let info = await this.hcInfo.appWs.appInfo({
       // TODO figure out why this works... it shouldn't, I think?
       installed_app_id: 'test-app',
     });
     const cell_id = info.cell_data[0].cell_id;
-
-    for (let i = 0; i < score_comps.length; i++) {
-      this.selectedScoreCompHash = await this.hcInfo.appWs.callZome({
-        cap: null,
-        cell_id: cell_id,
-        zome_name: 'memez_main_zome',
-        fn_name: 'create_score_computation',
-        payload: score_comps[i],
-        provenance: cell_id[1],
-      });
-    }
-    console.log("selectedScoreCompHash: ");
-    console.log(this.selectedScoreCompHash);
 
     this.scoreComps = await this.hcInfo.appWs.callZome({
       cap: null,
@@ -231,6 +226,29 @@ const App = {
     count_reaction(aggregated_reactions, reaction_idx) {
       let pair = aggregated_reactions.find(ls => ls[0] == reaction_idx);
       return (pair ? pair[1] : 0)
+    },
+    async create_score_comp(score_comp) {
+      let info = await this.hcInfo.appWs.appInfo({
+        // TODO figure out why this works... it shouldn't, I think?
+        installed_app_id: 'test-app',
+      });
+      const cell_id = info.cell_data[0].cell_id;
+
+      for (let i = 0; i < score_comps.length; i++) {
+        this.selectedScoreCompHash = await this.hcInfo.appWs.callZome({
+          cap: null,
+          cell_id: cell_id,
+          zome_name: 'memez_main_zome',
+          fn_name: 'create_score_computation',
+          payload: score_comp,
+          provenance: cell_id[1],
+        });
+      }
+      console.log("selectedScoreCompHash: ");
+      console.log(this.selectedScoreCompHash);
+    },
+    async handleScoreCompSubmit() {
+      this.create_score_comp(this.scoreCompCreateForm);
     }
   },
   mounted() {
