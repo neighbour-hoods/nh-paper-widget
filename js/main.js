@@ -140,22 +140,7 @@ const App = {
       await this.create_score_comp(score_comps[i]);
     }
 
-    let info = await this.hcInfo.appWs.appInfo({
-      // TODO figure out why this works... it shouldn't, I think?
-      installed_app_id: 'test-app',
-    });
-    const cell_id = info.cell_data[0].cell_id;
-
-    this.scoreComps = await this.hcInfo.appWs.callZome({
-      cap: null,
-      cell_id: cell_id,
-      zome_name: 'memez_main_zome',
-      fn_name: 'get_score_computations',
-      payload: null,
-      provenance: cell_id[1],
-    });
-    console.log("scoreComps: ");
-    console.log(this.scoreComps);
+    await this.get_score_comps();
 
     this.get_memez()
   },
@@ -274,8 +259,28 @@ const App = {
       console.log("selectedScoreCompHash: ");
       console.log(this.selectedScoreCompHash);
     },
+    async get_score_comps() {
+      let info = await this.hcInfo.appWs.appInfo({
+        // TODO figure out why this works... it shouldn't, I think?
+        installed_app_id: 'test-app',
+      });
+      const cell_id = info.cell_data[0].cell_id;
+
+      this.scoreComps = await this.hcInfo.appWs.callZome({
+        cap: null,
+        cell_id: cell_id,
+        zome_name: 'memez_main_zome',
+        fn_name: 'get_score_computations',
+        payload: null,
+        provenance: cell_id[1],
+      });
+      console.log("scoreComps: ");
+      console.log(this.scoreComps);
+    },
     async handleScoreCompSubmit() {
       this.create_score_comp(this.scoreCompCreateForm);
+
+      await this.get_score_comps();
     }
   },
   mounted() {
