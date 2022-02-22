@@ -227,6 +227,10 @@ const App = {
       console.log("set_score_comp: " + scoreCompHash);
       this.selectedScoreCompHash = scoreCompHash;
       this.get_memez()
+    },
+    count_reaction(aggregated_reactions, reaction_idx) {
+      let pair = aggregated_reactions.find(ls => ls[0] == reaction_idx);
+      return (pair ? pair[1] : 0)
     }
   },
   mounted() {

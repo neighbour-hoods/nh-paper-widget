@@ -1,4 +1,5 @@
 use hdk::prelude::*;
+use std::fmt::Debug;
 
 use common::{
     create_interchange_entry_full, create_interchange_entry_parse, get_interchange_entry,
@@ -7,7 +8,7 @@ use common::{
 };
 use rep_lang_core::{
     abstract_syntax::{Expr, Lit, PrimOp},
-    app,
+    app, error,
 };
 use rep_lang_runtime::{
     eval::{FlatValue, Value},
@@ -18,6 +19,32 @@ use rep_lang_runtime::{
 pub const MEME_TAG: &str = "memez_meme";
 pub const REACTION_TAG: &str = "memez_reaction";
 pub const NAMED_SCORE_COMP_TAG: &str = "memez_named_score_comp";
+
+pub const AGGREGATOR_FN_COMP: &str = r#"
+(let ([foldl
+       (fix (lam [foldl]
+         (lam [f acc xs]
+           (if (null xs)
+             acc
+             (foldl
+               f
+               (f acc (head xs))
+               (tail xs))))))]
+      [folder
+       (fix (lam [folder]
+         (lam [acc tup]
+           (if (null acc)
+               (cons tup nil)
+               (if (== (fst (head acc)) (fst tup))
+                   (cons (pair (fst (head acc)) (+ (snd tup) (snd (head acc))))
+                         (tail acc))
+                   (cons (head acc)
+                         (folder (tail acc) tup)))))))]
+      [aggregator
+       (lam [vals]
+         (foldl folder nil vals))])
+  aggregator)
+"#;
 
 entry_defs![
     Meme::entry_def(),
@@ -42,12 +69,13 @@ struct MemeRoot;
 struct ScoredMeme {
     meme_string: String,
     opt_score: Option<i64>,
+    aggregated_reactions: Vec<(i64, i64)>,
     eh: EntryHash,
 }
 
 #[hdk_extern]
 fn upload_meme(img_str: String) -> ExternResult<HeaderHash> {
-    debug!("received input of length {}", img_str.len());
+    debug!("upload_meme: received input of length {}", img_str.len());
 
     create_meme_root_if_needed()?;
 
@@ -76,18 +104,23 @@ fn get_all_meme_strings(nsc_eh: EntryHash) -> ExternResult<Vec<ScoredMeme>> {
         let res: ExternResult<ScoredMeme> = {
             let meme_eh = lnk.target;
             let (_hh, meme) = get_meme(meme_eh.clone())?;
-            let opt_score =
-                (score_meme(meme_eh.clone(), nsc.score_comp_ie_hh.clone())?).map(|(_hh, ie)| {
-                    // "adapter" / "converter" should go here and clean up the API
-                    match ie.output_flat_value {
-                        FlatValue(Value::VInt(x)) => x,
-                        _ => panic!("impossible: type inference broken"),
-                    }
-                });
+            let (_score_hh, score_ie, _aggregate_hh, aggregate_ie) =
+                score_meme(meme_eh.clone(), nsc.score_comp_ie_hh.clone())?;
+            // "adapter" / "converter" should go here and clean up the API
+            let opt_score = match score_ie.output_flat_value {
+                FlatValue(Value::VInt(x)) => Some(x),
+                _ => error!("impossible: type inference broken"),
+            };
+            let aggregated_reactions = {
+                let mut acc = vec![];
+                vlist_of_pairs_to_vec_of_pairs(aggregate_ie.output_flat_value, &mut acc);
+                acc
+            };
 
             Ok(ScoredMeme {
                 meme_string: meme.img_str,
                 opt_score,
+                aggregated_reactions,
                 eh: meme_eh,
             })
         };
@@ -111,10 +144,36 @@ fn create_meme_root_if_needed() -> ExternResult<bool> {
     }
 }
 
+fn vlist_of_pairs_to_vec_of_pairs<M: Debug>(ls: FlatValue<M>, acc: &mut Vec<(i64, i64)>) {
+    match ls {
+        FlatValue(Value::VCons(pair, tail)) => match *pair {
+            FlatValue(Value::VPair(fst, snd)) => match (*fst, *snd) {
+                (FlatValue(Value::VInt(fst)), FlatValue(Value::VInt(snd))) => {
+                    acc.push((fst, snd));
+                    vlist_of_pairs_to_vec_of_pairs(*tail, acc);
+                }
+                bad => error!(
+                    "vlist_of_pairs_to_vec_of_pairs: impossible: bad types: {:?}",
+                    bad
+                ),
+            },
+            bad => error!(
+                "vlist_of_pairs_to_vec_of_pairs: impossible: bad types: {:?}",
+                bad
+            ),
+        },
+        FlatValue(Value::VNil) => {}
+        bad => error!(
+            "vlist_of_pairs_to_vec_of_pairs: impossible: bad types: {:?}",
+            bad
+        ),
+    }
+}
+
 fn score_meme(
     meme_eh: EntryHash,
     score_comp_ie_hh: HeaderHash,
-) -> ExternResult<Option<(HeaderHash, InterchangeEntry)>> {
+) -> ExternResult<(HeaderHash, InterchangeEntry, HeaderHash, InterchangeEntry)> {
     let reaction_ie_links = get_links(meme_eh, Some(LinkTag::new(REACTION_TAG)))?;
     let mut reaction_ie_hh_s: Vec<HeaderHash> = vec![];
     for link in reaction_ie_links {
@@ -130,16 +189,28 @@ fn score_meme(
     }
 
     let reaction_list_ie = pack_ies_into_list_ie(reaction_ie_hh_s)?;
-    debug!("reaction_list_ie: {:?}", reaction_list_ie);
     let reaction_list_ie_hh = create_entry(&reaction_list_ie)?;
-    let score_comp_application_ie = mk_application_ie(vec![score_comp_ie_hh, reaction_list_ie_hh])?;
+
+    let input = CreateInterchangeEntryInputParse {
+        expr: AGGREGATOR_FN_COMP.to_string(),
+        args: vec![],
+    };
+    let (agg_comp_ie_hh, _agg_comp_ie) = create_interchange_entry_parse(input)?;
+    let aggregated_ie = mk_application_ie(vec![agg_comp_ie_hh, reaction_list_ie_hh])?;
+    let aggregated_reaction_list_ie_hh = create_entry(&aggregated_ie)?;
+    let score_comp_application_ie = mk_application_ie(vec![
+        score_comp_ie_hh,
+        aggregated_reaction_list_ie_hh.clone(),
+    ])?;
 
     let score_comp_application_ie_hh = create_entry(&score_comp_application_ie)?;
 
-    Ok(Some((
+    Ok((
         score_comp_application_ie_hh,
         score_comp_application_ie,
-    )))
+        aggregated_reaction_list_ie_hh,
+        aggregated_ie,
+    ))
 }
 
 #[derive(Debug, Serialize, Deserialize)]
