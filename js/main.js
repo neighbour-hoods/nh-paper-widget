@@ -7,10 +7,37 @@ const STATUS_INITIAL = 0, STATUS_SAVING = 1, STATUS_SUCCESS = 2, STATUS_FAILED =
 
 
 const score_comps = [
-  { name: "score_comp_const_1",
-    comp: "(lam [x] 1)",
+  { name: "equal value",
+    comp: `
+(let ([foldl
+         (fix (lam [foldl]
+           (lam [f acc xs]
+             (if (null xs)
+               acc
+               (foldl
+                 f
+                 (f acc (head xs))
+                 (tail xs))))))]
+        [lulz_scalar 1]
+        [mbz_scalar 1]
+        [folder
+         (lam [acc tup]
+           (if (== 0 (fst tup))
+               (pair (+ (* lulz_scalar (snd tup))
+                        (fst acc))
+                     (snd acc))
+               (if (== 1 (fst tup))
+                   (pair (fst acc)
+                         (+ (* mbz_scalar (snd tup))
+                            (snd acc)))
+                   acc)))])
+    (lam [vals]
+      (let ([res (foldl folder (pair 0 0) vals)])
+        (+ (fst res)
+           (snd res)))))
+`,
   },
-  { name: "score_comp_lulz_only",
+  { name: "😂 only",
     comp:`
 (let ([foldl
        (fix (lam [foldl]
@@ -30,7 +57,7 @@ const score_comps = [
     (foldl folder 0 vals)))
 `,
   },
-  { name: "score_comp_mbz_only",
+  { name: "🤯 only",
     comp: `
 (let ([foldl
        (fix (lam [foldl]
@@ -50,7 +77,7 @@ const score_comps = [
     (foldl folder 0 vals)))
 `,
   },
-  { name: "score_comp_lulz_and_mbz_scaled",
+  { name: "double 🤯",
     comp: `
 (let ([foldl
          (fix (lam [foldl]
@@ -61,8 +88,8 @@ const score_comps = [
                  f
                  (f acc (head xs))
                  (tail xs))))))]
-        [lulz_scalar 5]
-        [mbz_scalar 7]
+        [lulz_scalar 1]
+        [mbz_scalar 2]
         [folder
          (lam [acc tup]
            (if (== 0 (fst tup))
