@@ -310,14 +310,22 @@ fn create_score_computation(csci: CreateScoreComputationInput) -> ExternResult<E
         name: csci.name,
         score_comp_ie_hh: ie_hh,
     };
-    let _nsc_hh = create_entry(&nsc)?;
+
     let nsc_eh = hash_entry(&nsc)?;
-    create_nsc_root_if_needed()?;
-    create_link(
-        hash_entry(NamedScoreComputationRoot)?,
-        nsc_eh.clone(),
-        LinkTag::new(NAMED_SCORE_COMP_TAG),
-    )?;
+    match get(nsc_eh.clone(), GetOptions::content())? {
+        // if nsc doesn't exist, create it and link it
+        None => {
+            let _nsc_hh = create_entry(&nsc)?;
+            create_nsc_root_if_needed()?;
+            create_link(
+                hash_entry(NamedScoreComputationRoot)?,
+                nsc_eh.clone(),
+                LinkTag::new(NAMED_SCORE_COMP_TAG),
+            )?;
+        }
+        Some(_) => {}
+    };
+
     Ok(nsc_eh)
 }
 
