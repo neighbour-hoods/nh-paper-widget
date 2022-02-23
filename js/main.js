@@ -229,6 +229,7 @@ const App = {
         provenance: cell_id[1],
       });
       console.log("react_to_meme success flag: " + flag);
+      this.get_memez();
     },
     async set_score_comp(scoreCompHash) {
       console.log("set_score_comp: " + scoreCompHash);
