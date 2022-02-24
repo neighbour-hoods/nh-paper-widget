@@ -69,7 +69,7 @@
 
                 cp -r ${./js} .
 
-                npm run build-prod
+                npm run fe:build-prod
               '';
               installPhase = ''
                 cp -r dist $out/
@@ -85,6 +85,8 @@
             installPhase = ''
               mkdir $out
               cp -r ${dist} $out/dist
+              cp -r ${./imgs} $out/imgs
+              cp -r ${./fonts} $out/fonts
               cp ${./index.html} $out/index.html
               cp ${./style.css} $out/style.css
               cp ${./favicon.ico} $out/favicon.ico
