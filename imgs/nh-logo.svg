@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="15.87538mm"
+   height="11.915869mm"
+   viewBox="0 0 15.87538 11.915869"
+   version="1.1"
+   id="svg9835"
+   inkscape:version="1.1 (c4e8f9e, 2021-05-24)"
+   sodipodi:docname="nh-logo.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview9837"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:document-units="mm"
+     showgrid="false"
+     inkscape:zoom="0.58885382"
+     inkscape:cx="-30.567858"
+     inkscape:cy="-113.78036"
+     inkscape:window-width="2528"
+     inkscape:window-height="1408"
+     inkscape:window-x="32"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1" />
+  <defs
+     id="defs9832">
+    <radialGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient91738"
+       id="radialGradient26644-3-8-14-1-4"
+       cx="-76.387939"
+       cy="-18.565874"
+       fx="-76.387939"
+       fy="-18.565874"
+       r="7.9375"
+       gradientTransform="matrix(0.85283501,-0.98580242,1.4593817,1.2625368,217.52613,134.34674)"
+       gradientUnits="userSpaceOnUse" />
+    <linearGradient
+       inkscape:collect="always"
+       id="linearGradient91738">
+      <stop
+         style="stop-color:#ffffff;stop-opacity:0.99607843"
+         offset="0"
+         id="stop91734" />
+      <stop
+         style="stop-color:#ffffff;stop-opacity:0"
+         offset="1"
+         id="stop91736" />
+    </linearGradient>
+    <radialGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient91738"
+       id="radialGradient13114-5"
+       cx="-979.28009"
+       cy="-445.67078"
+       fx="-979.28009"
+       fy="-445.67078"
+       r="7.9376702"
+       gradientTransform="matrix(-0.41188052,1.5938544,-2.4281024,-0.62746515,-1368.1332,1459.4596)"
+       gradientUnits="userSpaceOnUse" />
+  </defs>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(-113.3785,-178.26294)">
+    <path
+       style="fill:url(#radialGradient26644-3-8-14-1-4);fill-opacity:1;stroke:none;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 117.34763,186.21005 c 0,0 0,3.96875 -3.96875,3.96875 0,0 0,-7.93749 0,-7.93749 0,0 0,-3.96877 3.96875,-3.96876 0,0 0,3.96874 3.96875,3.96875 3.96875,1e-5 3.96875,3.96876 3.96875,3.96876 v -7.93751 c 0,0 3.96875,-1e-5 3.96875,3.96875 v 3.96875 c 0,0 0,3.96874 -3.96875,3.96875 l -3.96875,1e-5 c 0,0 0,-3.96876 -3.96875,-3.96876 z"
+       id="path14390-8-3-3-64-8-5"
+       sodipodi:nodetypes="cscssccscscc"
+       inkscape:export-filename="/home/frugal/Documents/Proyectos/neighborhoods/logos_for_press/original.png"
+       inkscape:export-xdpi="600"
+       inkscape:export-ydpi="600" />
+    <path
+       id="path15246-4-2-1-9-7-1-4-0-0-5-3"
+       style="fill:url(#radialGradient13114-5);fill-opacity:1;stroke:none;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 125.90488,178.26355 c -0.37208,0.001 -0.62013,0.004 -0.62013,0.009 0,3.96872 -3.96875,3.96875 -3.96875,3.96875 0,0 0,-3.96878 -3.96875,-3.96875 -1.37898,0 -2.27827,0.4795 -2.86546,1.10482 -0.62455,0.58721 -1.10329,1.48608 -1.10329,2.86393 v 7.9375 c 0.015,0 0.0295,-4.3e-4 0.0444,-5.3e-4 5.8e-4,-3e-5 0.002,2e-5 0.003,0 1.35212,-0.0109 2.23805,-0.48572 2.81844,-1.10382 0.62455,-0.58721 1.10329,-1.48658 1.10329,-2.8644 h 7.9375 c -1.37898,0 -2.27827,0.4795 -2.86546,1.10482 -0.62455,0.58721 -1.10329,1.48608 -1.10329,2.86393 h 3.91501 0.0537 c 3.96875,0 3.96875,-3.96875 3.96875,-3.96875 v -0.0119 -4.48601 -3.43958 c 0,0 -2.23242,-0.0125 -3.34862,-0.009 z" />
+  </g>
+</svg>

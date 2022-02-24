@@ -14,12 +14,24 @@
 </head>
 
 <body>
+  <header id="top">        
+    <div id="h-corner-logo" ></div>
+    <a href="#top">
+        <img id="logo" src="imgs/nh-logo.svg" alt="nh-logo"/>
+    </a>
+
+    <div id="h-main">
+        <h1>Memeable Viable Product 1.0</h1>
+    </div>
+    <img id="h-corner-r" src="imgs/corner-r.svg">
+</header>
+
   <section id="general-wrapper">
   <div id="app">
     <div class="container">
       <!--UPLOAD-->
       <form enctype="multipart/form-data" novalidate v-if="isInitial || isSaving">
-        <h1>upload meme(z)</h1>
+        <h3 class='subtitle'>upload memes</h3>
         <div class="dropbox">
           <input type="file" :disabled="isSaving" @change="save($event.target.files[0]);"
             accept="image/*" class="input-file">
@@ -33,8 +45,31 @@
       </form>
   </div>
 
+  <details>
+    <summary>input custom score computation</summary>
   <div>
-    <label for="score_comps">choose a score computation:</label>
+    <form id="custom_score" @submit.prevent="handleScoreCompSubmit">
+      <label for="name">name</label> <br>
+      <input type="name" id="name" v-model="scoreCompCreateForm.name" required />
+      <br>
+      <br>
+      <label for="comp">expression</label>
+      <br>
+      <textarea
+        id="comp"
+        cols="28"
+        rows="10"
+        v-model="scoreCompCreateForm.comp"
+        required
+      ></textarea>
+      <br>
+      <button type="submit">submit</button>
+    </form>
+  </div>
+  </details>
+
+  <div>
+    <label class="subtitle" for="score_comps">choose a score computation</label>
     <div id="score_comps">
       <label v-for="scoreComp in scoreComps">
         <input
@@ -49,25 +84,7 @@
     </div>
   </div>
 
-  <div>
-    <form @submit.prevent="handleScoreCompSubmit">
-      <label for="name">name</label>
-      <input type="name" id="name" v-model="scoreCompCreateForm.name" required />
-
-      <label for="comp">expression</label>
-      <textarea
-        id="comp"
-        cols="30"
-        rows="10"
-        v-model="scoreCompCreateForm.comp"
-        required
-      ></textarea>
-
-      <button type="submit">submit</button>
-    </form>
-  </div>
-
-  <button v-on:click="get_memez()">refresh feed</button>
+  <button id="refresh" v-on:click="get_memez()">&#8635;</button>
 
   <div class="container">
     <div v-for="score_comp in scoreComps">

@@ -17,12 +17,68 @@ body{
   font-family: 'Apfel Grotezk Regular', sans-serif;
   font-size: 18px;
   display: grid;
+  grid-gap: 2vw;
   grid-template-columns: 1fr minmax(320px, 960px) 1fr;
   overflow-x: hidden;
+  padding: 0;
+  margin: 0;
+}
+
+header{
+  position: absolute;
+  width: 100%;
+  z-index: 100;
+}
+
+h1{
+  color: white;
+  margin-left: 125px;
+  font-size: 1.2em;
+  margin-top: 18px;
+  font-weight: normal;
+}
+
+#h-corner-logo{
+  position: fixed;
+  width: 130px;
+  height: 130px;
+  top: -100px;
+  border-radius: 65px;
+  margin-top: 30px;
+  background-color: black;
+}
+
+#h-corner-r{
+  position: absolute;
+  width: 64px;
+  top: 59px;
+  right: 0;
+}
+
+#logo{
+  height: 40px;
+  left: 40px;
+  top: 8px;
+  position: fixed;
+  transition: filter 500ms;
+  cursor: pointer;
+}
+
+#logo:hover{
+  filter: drop-shadow(0px 0px 12px rgba(250,230,200,0.6));
+}
+
+#h-main{
+width: 100%;
+border-bottom-left-radius: 60px;
+height: 60px;
+background-color: black;
+display: flex;
 }
 
 #general-wrapper{
   grid-column: 2;
+  margin-top: 64px;
 }
 
 .uploaded-meme{
@@ -36,12 +92,12 @@ body{
 
 .uploaded-meme button{
   font-size: 28px;
-  padding: 8px 12px;
+  padding: 8px 16px;
   background-color: white;
   border: none;
-  border-radius: 24px;
+  border-radius: 32px;
   box-shadow: 0px 0px 8px black;
-  margin-left: 12px;
+  margin-left: 16px;
   margin-top: -18px;
   cursor: pointer;
   transition: transform 250ms, box-shadow 300ms;
@@ -68,6 +124,7 @@ body{
     position: relative;
     cursor: pointer;
     transition: background-color 350ms;
+    margin-bottom: 2em;
   }
 
   .input-file {
@@ -89,4 +146,127 @@ body{
     text-align: center;
     padding: 50px 0;
   }
+
+  .subtitle{
+    font-size: 1.2em;
+    font-weight: bold;
+  }
+
+  #score_comps{
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    margin-bottom: 2em;
+    margin-top: 1em;
+  }
+
+  #score_comps label{
+    background-color:azure;
+    box-shadow: 0px 0px 6px rgba(0,0,0,0.3);
+    padding: 12px 24px 12px 12px;
+    margin: 12px;
+    border-radius: 36px;
+    width: max-content;
+    cursor: pointer;
+    transition: transform 200ms, box-shadow 250ms;
+  }
+
+  #score_comps label:hover{
+    transform: translateY(-6px) scale(110%);
+    box-shadow: 0px 0px 4px rgba(0,0,0,0.3);
+  }
+  
+  #score_comps label:active{
+    transform: translateY(-6px) scale(90%);
+    box-shadow: 0px 0px 2px black;
+  }
+
+  input[type=radio] {
+    border: 0px;
+    width: 1.5em;
+    height: 1.5em;
+}
+
+#custom_score input, textarea{
+  font-family: 'Apfel Grotezk Regular', sans-serif;
+  font-size: 1.1em;
+  border-radius: 12px;
+  border: 1px solid grey;
+  padding: 4px;
+}
+
+#custom_score button{
+  background-color: rgba(139, 148, 245, 1);
+  color: white;
+  font-size: 1.1em;
+  font-family: 'Apfel Grotezk Regular', sans-serif;
+  border-radius: 24px;
+  padding: 12px 20px;
+  border: none;
+  margin-top: 12px;
+  margin-bottom: 12px;
+  box-shadow: 0px 0px 4px rgba(0,0,0,0.3);
+  cursor: pointer;
+  transition: transform 200ms, box-shadow 250ms;
+}
+
+#custom_score button:hover{
+  transform: translateY(-6px) scale(110%);
+  box-shadow: 0px 0px 4px rgba(0,0,0,0.3);
+}
+
+#custom_score button:active{
+  transform: translateY(-6px) scale(90%);
+  box-shadow: 0px 0px 2px black;
+}
+
+#refresh{
+  position: fixed;
+  bottom: 12px;
+  right: 12px;
+  font-size: 2em;
+  font-weight: bold;
+  font-family: 'Apfel Grotezk Regular', sans-serif;
+  background-color: rgba(139, 148, 245, 1);
+  color: white;
+  transform: rotate(65deg);
+  width: 60px;
+  height: 60px;
+  text-align: center;
+  border-radius: 30px;
+  border: none;
+  z-index: 4;
+  box-shadow: 0px 0px 4px rgba(0,0,0,0.3);
+  cursor: pointer;
+  transition: transform 200ms, box-shadow 250ms;
+}
+
+#refresh:hover{
+  transform: translateY(-6px) scale(110%) rotate(95deg);
+  box-shadow: 0px 0px 4px rgba(0,0,0,0.3);
+}
+
+#refresh:active{
+  transform: translateY(-6px) scale(90%) rotate(120deg);
+  box-shadow: 0px 0px 2px black;
+}
+
+details summary{
+  margin-bottom: 12px;
+    font-size: 1.2em;
+    cursor: pointer;
+}
+
+@keyframes details-show {
+  from {
+    opacity:0;
+    transform: var(--details-translate, translateY(-0.5em));
+  }
+}
+
+details[open] > *:not(summary) {
+  animation: details-show 250ms ease-in-out;
+}
+
+
 </style>
