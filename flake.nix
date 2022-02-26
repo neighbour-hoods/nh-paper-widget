@@ -7,6 +7,8 @@
       url = "github:holochain/holonix";
       flake = false;
     };
+    rust-overlay.url = "github:oxalica/rust-overlay";
+    naersk.url = "github:mhuesch/naersk";
 
     # misc
     flake-compat = {
@@ -15,13 +17,14 @@
     };
   };
 
-  outputs = { self, nixpkgs, flake-utils, node2nix, holonix, ... }:
+  outputs = { self, nixpkgs, flake-utils, node2nix, holonix, rust-overlay, naersk, ... }:
     flake-utils.lib.eachDefaultSystem (system:
       let
         holonixMain = import holonix { };
 
         pkgs = import nixpkgs {
           inherit system;
+          overlays = [ rust-overlay.overlay ];
         };
 
         rustVersion = "1.55.0";
@@ -90,6 +93,44 @@
               cp ${./index.html} $out/index.html
               cp ${./style.css} $out/style.css
               cp ${./favicon.ico} $out/favicon.ico
+            '';
+          };
+
+        packages.memez-naersk =
+          let
+            wasmTarget = "wasm32-unknown-unknown";
+
+            rust = pkgs.rust-bin.stable.${rustVersion}.default.override {
+              targets = [ wasmTarget ];
+            };
+
+            naersk' = pkgs.callPackage naersk {
+              cargo = rust;
+              rustc = rust;
+            };
+
+            memez-wasm = naersk'.buildPackage {
+              src = ./.;
+              copyLibs = true;
+              CARGO_BUILD_TARGET = wasmTarget;
+              cargoBuildOptions = (opts: opts ++ ["--package=memez"]);
+            };
+
+          in
+
+          pkgs.stdenv.mkDerivation {
+            name = "memez-happ";
+            buildInputs = [
+              holonixMain.pkgs.holochainBinaries.hc
+            ];
+            unpackPhase = "true";
+            installPhase = ''
+              mkdir $out
+              cp ${memez-wasm}/lib/memez.wasm $out
+              cp ${happs/memez/dna.yaml} $out/dna.yaml
+              cp ${happs/memez/happ.yaml} $out/happ.yaml
+              hc dna pack $out
+              hc app pack $out
             '';
           };
       });
