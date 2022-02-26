@@ -112,7 +112,19 @@ const score_comps = [
 const App = {
   name: 'app',
   data() {
+    let hcAppPort = localStorage.getItem('hcAppPort');
+    if (hcAppPort === null) {
+      hcAppPort = 9999;
+      localStorage.setItem('hcAppPort', hcAppPort);
+    }
+    let hcAdminPort = localStorage.getItem('hcAdminPort');
+    if (hcAdminPort === null) {
+      hcAdminPort = 9000;
+      localStorage.setItem('hcAdminPort', hcAdminPort);
+    }
     return {
+      hcAppPort,
+      hcAdminPort,
       uploadError: null,
       currentStatus: null,
       hcInfo: null,
@@ -126,8 +138,8 @@ const App = {
     }
   },
   async created () {
-    let appWs = await AppWebsocket.connect('ws://localhost:9999');
-    let adminWs = await AdminWebsocket.connect('ws://localhost:9000');
+    let appWs = await AppWebsocket.connect('ws://localhost:' + this.hcAppPort.toString());
+    let adminWs = await AdminWebsocket.connect('ws://localhost:' + this.hcAdminPort.toString());
     let agentPk = await adminWs.generateAgentPubKey();
     let hcInfo = {
         adminWs: adminWs,
@@ -282,6 +294,11 @@ const App = {
       this.create_score_comp(this.scoreCompCreateForm);
 
       await this.get_score_comps();
+    },
+    async handleHcPortSubmit() {
+      localStorage.setItem('hcAppPort', this.hcAppPort);
+      localStorage.setItem('hcAdminPort', this.hcAdminPort);
+      window.location.reload()
     }
   },
   mounted() {

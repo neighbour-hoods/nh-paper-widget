@@ -97,6 +97,14 @@
         <button v-on:click="react(meme.eh, 'mbz')">🤯 {{count_reaction(meme.aggregated_reactions, 1)}}</button>
     </div>
   </div>
+
+  <div>
+    <form id="hc_ports" @submit.prevent="handleHcPortSubmit">
+      <input type="number" v-model="hcAppPort" required />
+      <input type="number" v-model="hcAdminPort" required />
+      <button type="submit">submit</button>
+    </form>
+  </div>
 </section>
 </body>
 
