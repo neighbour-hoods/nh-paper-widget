@@ -16,6 +16,7 @@
   "scripts": {
     "fe:build": "webpack-cli --entry ./js/main.js --output-filename index.js --mode development",
     "fe:build-prod": "webpack-cli --entry ./js/main.js --output-filename index.js --mode production",
+    "hc:clean": "rm -rf .hc*",
     "hc:build": "cargo build -p memez --release --target wasm32-unknown-unknown && cp $CARGO_TARGET_DIR/wasm32-unknown-unknown/release/memez.wasm ./happs/memez",
     "hc:pack": "hc dna pack happs/memez && hc app pack happs/memez",
     "hc:run": "rm -rf .hc* && hc sandbox generate happs/memez && hc sandbox -f=9000 run -l -p 9999"

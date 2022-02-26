@@ -51,6 +51,38 @@ $ nix develop --impure
 # alternately, just go there in your browser
 ----
 
+=== running with multiple conductors
+
+[source]
+----
+# perform above build steps
+npm run hc:clean
+
+# terminal 1
+hc sandbox -f=9000 generate happs/memez -r=9999 network mdns
+
+# terminal 2
+hc sandbox -f=9008 generate happs/memez -r=9998 network mdns
+
+# terminal 3
+miniserve -p 8081 .
+
+# terminal 4
+miniserve -p 8082 .
+----
+
+now browse & change ports (at bottom of page):
+
+* http://localhost:8081
+** app: 9999
+** admin: 9009
+
+* http://localhost:8082
+** app: 9998
+** admin: 9008
+
+then refresh the pages.
+
 == deployment / production mode
 
 (with a https://nixos.wiki/wiki/Flakes#Installing_flakes[Flakes] supporting https://nixos.org/download.html[`nix`] installed)
