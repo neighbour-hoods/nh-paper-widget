@@ -191,7 +191,7 @@ details{
   float: right;
 }
 
-#custom_score input, textarea{
+.form_class input, textarea{
   font-family: 'Apfel Grotezk Regular', sans-serif;
   font-size: 1.1em;
   border-radius: 12px;
@@ -199,7 +199,7 @@ details{
   padding: 4px;
 }
 
-#custom_score button{
+.form_class button{
   background-color: rgba(139, 148, 245, 1);
   color: white;
   font-size: 1.1em;
@@ -214,14 +214,18 @@ details{
   transition: transform 200ms, box-shadow 250ms;
 }
 
-#custom_score button:hover{
+.form_class button:hover{
   transform: translateY(-6px) scale(110%);
   box-shadow: 0px 0px 4px rgba(0,0,0,0.3);
 }
 
-#custom_score button:active{
+.form_class button:active{
   transform: translateY(-6px) scale(90%);
   box-shadow: 0px 0px 2px black;
+}
+
+#hc_ports input{
+  margin-top: 12px;
 }
 
 #refresh{
