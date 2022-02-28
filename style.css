@@ -191,6 +191,70 @@ details{
   float: right;
 }
 
+#score_comps input, textarea{
+  font-family: 'Apfel Grotezk Regular', sans-serif;
+  border-radius: 12px;
+  border: 1px solid grey;
+  padding: 4px;
+}
+
+#score_comps button{
+  background-color: rgba(139, 148, 245, 1);
+  color: white;
+  font-size: 1.1em;
+  font-family: 'Apfel Grotezk Regular', sans-serif;
+  border-radius: 24px;
+  padding: 12px 20px;
+  border: none;
+  margin-top: 12px;
+  margin-bottom: 12px;
+  box-shadow: 0px 0px 4px rgba(0,0,0,0.3);
+  cursor: pointer;
+  transition: transform 200ms, box-shadow 250ms;
+}
+
+#score_comps button:hover{
+  transform: translateY(-6px) scale(110%);
+  box-shadow: 0px 0px 4px rgba(0,0,0,0.3);
+}
+
+#score_comps button:active{
+  transform: translateY(-6px) scale(90%);
+  box-shadow: 0px 0px 2px black;
+}
+
+#custom_score input, textarea{
+  font-family: 'Apfel Grotezk Regular', sans-serif;
+  border-radius: 12px;
+  border: 1px solid grey;
+  padding: 4px;
+}
+
+#custom_score button{
+  background-color: rgba(139, 148, 245, 1);
+  color: white;
+  font-size: 1.1em;
+  font-family: 'Apfel Grotezk Regular', sans-serif;
+  border-radius: 24px;
+  padding: 12px 20px;
+  border: none;
+  margin-top: 12px;
+  margin-bottom: 12px;
+  box-shadow: 0px 0px 4px rgba(0,0,0,0.3);
+  cursor: pointer;
+  transition: transform 200ms, box-shadow 250ms;
+}
+
+#custom_score button:hover{
+  transform: translateY(-6px) scale(110%);
+  box-shadow: 0px 0px 4px rgba(0,0,0,0.3);
+}
+
+#custom_score button:active{
+  transform: translateY(-6px) scale(90%);
+  box-shadow: 0px 0px 2px black;
+}
+
 .form_class input, textarea{
   font-family: 'Apfel Grotezk Regular', sans-serif;
   font-size: 1.1em;
