@@ -86,7 +86,7 @@
         {{ score_comp.expr }}
     </div>
     <div v-for="meme in memez" class="uploaded-meme">
-        <img style="max-width: 100%;" v-bind:src="`${meme.meme_string}`">
+        <img style="width: 100%;" v-bind:src="`${meme.meme_string}`">
         Score: {{ meme.opt_score ?? "null" }}
         <button v-on:click="react(meme.eh, 'lulz')">😂 {{count_reaction(meme.aggregated_reactions, 0)}}</button>
         <button v-on:click="react(meme.eh, 'mbz')">🤯 {{count_reaction(meme.aggregated_reactions, 1)}}</button>
