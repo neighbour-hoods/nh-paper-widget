@@ -176,24 +176,29 @@ const App = {
       this.currentStatus = STATUS_INITIAL;
       this.uploadError = null;
     },
-    async save(file) {
-      // upload data to the server
+    async save(files) {
+      console.log("files:");
+      console.log(files);
       this.currentStatus = STATUS_SAVING;
 
-      let data = await getBase64(file);
-      let info = await this.hcInfo.appWs.appInfo({
-        // TODO figure out why this works... it shouldn't, I think?
-        installed_app_id: 'test-app',
-      });
-      const cell_id = info.cell_data[0].cell_id;
-      const res = await this.hcInfo.appWs.callZome({
-        cap: null,
-        cell_id: cell_id,
-        zome_name: 'memez_main_zome',
-        fn_name: 'upload_meme',
-        payload: data,
-        provenance: cell_id[1],
-      });
+      for (var i = 0; i < files.length; i++) {
+        let file = files[i];
+        let data = await getBase64(file);
+        let info = await this.hcInfo.appWs.appInfo({
+          // TODO figure out why this works... it shouldn't, I think?
+          installed_app_id: 'test-app',
+        });
+        const cell_id = info.cell_data[0].cell_id;
+        const res = await this.hcInfo.appWs.callZome({
+          cap: null,
+          cell_id: cell_id,
+          zome_name: 'memez_main_zome',
+          fn_name: 'upload_meme',
+          payload: data,
+          provenance: cell_id[1],
+        });
+      }
+
       this.currentStatus = STATUS_INITIAL;
       // TODO handle `res` error cases
 

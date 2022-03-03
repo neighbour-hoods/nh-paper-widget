@@ -28,7 +28,7 @@
       <form enctype="multipart/form-data" novalidate v-if="isInitial || isSaving">
         <h3 class='subtitle'>upload memes</h3>
         <div class="dropbox">
-          <input type="file" :disabled="isSaving" @change="save($event.target.files[0]);"
+          <input type="file" multiple :disabled="isSaving" @change="save($event.target.files);"
             accept="image/*" class="input-file">
             <p v-if="isInitial">
               drag your meme(z) here to begin<br> or click to browse
