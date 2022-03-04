@@ -22,5 +22,5 @@
     "hc:run": "rm -rf .hc* && hc sandbox generate happs/memez && hc sandbox -f=9000 run -l -p 9999"
   },
   "author": "",
-  "license": "ISC"
+  "license": "MIT"
 }

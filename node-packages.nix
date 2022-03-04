@@ -1482,7 +1482,7 @@ let
     buildInputs = globalBuildInputs;
     meta = {
       description = "";
-      license = "ISC";
+      license = "MIT";
     };
     production = true;
     bypassCache = true;

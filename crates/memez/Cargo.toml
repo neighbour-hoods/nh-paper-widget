@@ -3,6 +3,7 @@ name = "memez"
 version = "0.1.0"
 authors = ["Michael Hueschen <m@mhueschen.space>"]
 edition = "2018"
+license = "MIT"
 
 [dependencies]
 hdk = "0.0.117"
