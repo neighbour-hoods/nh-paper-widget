@@ -109,7 +109,7 @@ dependencies = [
 [[package]]
 name = "common"
 version = "0.1.0"
-source = "git+https://github.com/neighbour-hoods/rep_interchange.git?rev=d99f636463de718bb6011d976d543db2421e043a#d99f636463de718bb6011d976d543db2421e043a"
+source = "git+https://github.com/neighbour-hoods/social_sensemaker.git?rev=f6083901443dc3223c7b6c0a9b01f0b92645ac01#f6083901443dc3223c7b6c0a9b01f0b92645ac01"
 dependencies = [
  "combine",
  "hdk",
@@ -651,7 +651,7 @@ checksum = "f497285884f3fcff424ffc933e56d7cbca511def0c9831a7f9b5f6153e3cc89b"
 [[package]]
 name = "rep_lang_concrete_syntax"
 version = "0.1.0"
-source = "git+https://github.com/neighbour-hoods/rep_lang.git?rev=7ebd5b212ee995bd1f4f7f1a8dbe5a60bb75dd01#7ebd5b212ee995bd1f4f7f1a8dbe5a60bb75dd01"
+source = "git+https://github.com/neighbour-hoods/rep_lang.git?rev=3cadc2eebe7c315844527de4bab7398108a17b57#3cadc2eebe7c315844527de4bab7398108a17b57"
 dependencies = [
  "combine",
  "pretty",
@@ -663,7 +663,7 @@ dependencies = [
 [[package]]
 name = "rep_lang_core"
 version = "0.1.0"
-source = "git+https://github.com/neighbour-hoods/rep_lang.git?rev=7ebd5b212ee995bd1f4f7f1a8dbe5a60bb75dd01#7ebd5b212ee995bd1f4f7f1a8dbe5a60bb75dd01"
+source = "git+https://github.com/neighbour-hoods/rep_lang.git?rev=3cadc2eebe7c315844527de4bab7398108a17b57#3cadc2eebe7c315844527de4bab7398108a17b57"
 dependencies = [
  "hdk",
  "holochain_serialized_bytes_derive",
@@ -675,7 +675,7 @@ dependencies = [
 [[package]]
 name = "rep_lang_runtime"
 version = "0.1.0"
-source = "git+https://github.com/neighbour-hoods/rep_lang.git?rev=7ebd5b212ee995bd1f4f7f1a8dbe5a60bb75dd01#7ebd5b212ee995bd1f4f7f1a8dbe5a60bb75dd01"
+source = "git+https://github.com/neighbour-hoods/rep_lang.git?rev=3cadc2eebe7c315844527de4bab7398108a17b57#3cadc2eebe7c315844527de4bab7398108a17b57"
 dependencies = [
  "byteorder",
  "combine",

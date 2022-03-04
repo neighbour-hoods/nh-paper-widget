@@ -2,9 +2,9 @@ use hdk::prelude::*;
 use std::fmt::Debug;
 
 use common::{
-    create_interchange_entry_full, create_interchange_entry_parse, get_interchange_entry,
-    get_interchange_entry_by_headerhash, mk_application_ie, pack_ies_into_list_ie,
-    CreateInterchangeEntryInput, CreateInterchangeEntryInputParse, InterchangeEntry, SchemeEntry,
+    create_sensemaker_entry_full, create_sensemaker_entry_parse, get_sensemaker_entry,
+    get_sensemaker_entry_by_headerhash, mk_application_ie, pack_ies_into_list_ie,
+    CreateSensemakerEntryInput, CreateSensemakerEntryInputParse, SchemeEntry, SensemakerEntry,
 };
 use rep_lang_core::{
     abstract_syntax::{Expr, Lit, PrimOp},
@@ -51,7 +51,7 @@ entry_defs![
     MemeRoot::entry_def(),
     NamedScoreComputation::entry_def(),
     NamedScoreComputationRoot::entry_def(),
-    InterchangeEntry::entry_def(),
+    SensemakerEntry::entry_def(),
     SchemeEntry::entry_def()
 ];
 
@@ -93,7 +93,7 @@ fn get_all_meme_strings(nsc_eh: EntryHash) -> ExternResult<Vec<ScoredMeme>> {
     //     WasmError::Guest(format!("err: {}", err))
     // )?;
     let (_nsc_hh, nsc) = get_nsc(nsc_eh)?;
-    let (_eh, score_comp_ie) = get_interchange_entry_by_headerhash(nsc.score_comp_ie_hh.clone())?;
+    let (_eh, score_comp_ie) = get_sensemaker_entry_by_headerhash(nsc.score_comp_ie_hh.clone())?;
 
     // check IE scheme is right
     let () = check_schemes_unify(score_comp_sc(), score_comp_ie.output_scheme)?;
@@ -173,17 +173,17 @@ fn vlist_of_pairs_to_vec_of_pairs<M: Debug>(ls: FlatValue<M>, acc: &mut Vec<(i64
 fn score_meme(
     meme_eh: EntryHash,
     score_comp_ie_hh: HeaderHash,
-) -> ExternResult<(HeaderHash, InterchangeEntry, HeaderHash, InterchangeEntry)> {
+) -> ExternResult<(HeaderHash, SensemakerEntry, HeaderHash, SensemakerEntry)> {
     let reaction_ie_links = get_links(meme_eh, Some(LinkTag::new(REACTION_TAG)))?;
     let mut reaction_ie_hh_s: Vec<HeaderHash> = vec![];
     for link in reaction_ie_links {
-        match get_interchange_entry(link.target) {
+        match get_sensemaker_entry(link.target) {
             Ok((hh, ie)) => {
                 let () = check_schemes_unify(reaction_sc(), ie.output_scheme)?;
                 reaction_ie_hh_s.push(hh);
             }
             Err(err) => {
-                debug!("get_interchange_entry: err: {}", err);
+                debug!("get_sensemaker_entry: err: {}", err);
             }
         }
     }
@@ -191,11 +191,11 @@ fn score_meme(
     let reaction_list_ie = pack_ies_into_list_ie(reaction_ie_hh_s)?;
     let reaction_list_ie_hh = create_entry(&reaction_list_ie)?;
 
-    let input = CreateInterchangeEntryInputParse {
+    let input = CreateSensemakerEntryInputParse {
         expr: AGGREGATOR_FN_COMP.to_string(),
         args: vec![],
     };
-    let (agg_comp_ie_hh, _agg_comp_ie) = create_interchange_entry_parse(input)?;
+    let (agg_comp_ie_hh, _agg_comp_ie) = create_sensemaker_entry_parse(input)?;
     let aggregated_ie = mk_application_ie(vec![agg_comp_ie_hh, reaction_list_ie_hh])?;
     let aggregated_reaction_list_ie_hh = create_entry(&aggregated_ie)?;
     let score_comp_application_ie = mk_application_ie(vec![
@@ -237,7 +237,7 @@ fn react_to_meme(rtmi: ReactToMemeInput) -> ExternResult<bool> {
                 Expr::Lit(Lit::LInt(rtmi.count.into()))
             );
             let (_ie_hh, ie_eh, _ie) =
-                create_interchange_entry_full(CreateInterchangeEntryInput { expr, args: vec![] })?;
+                create_sensemaker_entry_full(CreateSensemakerEntryInput { expr, args: vec![] })?;
             let _link_hh = create_link(rtmi.meme_eh, ie_eh, LinkTag::new(REACTION_TAG));
             Ok(true)
         }
@@ -274,7 +274,7 @@ fn get_score_computations(_: ()) -> ExternResult<Vec<ScoreComputation>> {
             let nsc_eh = lnk.target.clone();
 
             let (_nsc_hh, nsc) = get_nsc(nsc_eh.clone())?;
-            let (_ie_eh, ie) = get_interchange_entry_by_headerhash(nsc.score_comp_ie_hh)?;
+            let (_ie_eh, ie) = get_sensemaker_entry_by_headerhash(nsc.score_comp_ie_hh)?;
 
             let () = check_schemes_unify(score_comp_sc(), ie.output_scheme)?;
 
@@ -363,16 +363,16 @@ struct NamedScoreComputation {
 /// with type:
 ///   List (Int, Int) -> Int
 /// and returns the `HeaderHash` of the created `NamedScoreComputation`, which
-/// holds the name and the HeaderHash of the InterchangeEntry which houses the
+/// holds the name and the HeaderHash of the SensemakerEntry which houses the
 /// score computation.
 #[hdk_extern]
 fn create_score_computation(csci: CreateScoreComputationInput) -> ExternResult<EntryHash> {
     debug!("{}", csci.comp);
-    let input = CreateInterchangeEntryInputParse {
+    let input = CreateSensemakerEntryInputParse {
         expr: csci.comp,
         args: vec![],
     };
-    let (ie_hh, ie) = create_interchange_entry_parse(input)?;
+    let (ie_hh, ie) = create_sensemaker_entry_parse(input)?;
 
     // check IE scheme is right
     let () = check_schemes_unify(score_comp_sc(), ie.output_scheme)?;
