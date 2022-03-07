@@ -96,7 +96,7 @@ fn get_all_meme_strings(nsc_eh: EntryHash) -> ExternResult<Vec<ScoredMeme>> {
     let (_eh, score_comp_ie) = get_sensemaker_entry_by_headerhash(nsc.score_comp_ie_hh.clone())?;
 
     // check IE scheme is right
-    let () = check_schemes_unify(score_comp_sc(), score_comp_ie.output_scheme)?;
+    check_schemes_unify(score_comp_sc(), score_comp_ie.output_scheme)?;
 
     let meme_entry_links = get_links(hash_entry(MemeRoot)?, Some(LinkTag::new(MEME_TAG)))?;
     let mut meme_strings: Vec<ScoredMeme> = Vec::new();
@@ -179,7 +179,7 @@ fn score_meme(
     for link in reaction_ie_links {
         match get_sensemaker_entry(link.target) {
             Ok((hh, ie)) => {
-                let () = check_schemes_unify(reaction_sc(), ie.output_scheme)?;
+                check_schemes_unify(reaction_sc(), ie.output_scheme)?;
                 reaction_ie_hh_s.push(hh);
             }
             Err(err) => {
@@ -356,7 +356,7 @@ fn create_nsc_root_if_needed() -> ExternResult<bool> {
 #[hdk_entry]
 struct NamedScoreComputation {
     name: String,
-    score_comp_ie_hh: HeaderHash,
+    score_comp_se_hh: HeaderHash,
 }
 
 /// takes a string name, and a string which should parse to a `rep_lang` Expr

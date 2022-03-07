@@ -264,16 +264,14 @@ const App = {
       });
       const cell_id = info.cell_data[0].cell_id;
 
-      for (let i = 0; i < score_comps.length; i++) {
-        this.selectedScoreCompHash = await this.hcInfo.appWs.callZome({
-          cap: null,
-          cell_id: cell_id,
-          zome_name: 'memez_main_zome',
-          fn_name: 'create_score_computation',
-          payload: score_comp,
-          provenance: cell_id[1],
-        });
-      }
+      this.selectedScoreCompHash = await this.hcInfo.appWs.callZome({
+        cap: null,
+        cell_id: cell_id,
+        zome_name: 'memez_main_zome',
+        fn_name: 'create_score_computation',
+        payload: score_comp,
+        provenance: cell_id[1],
+      });
       console.log("selectedScoreCompHash: ");
       console.log(this.selectedScoreCompHash);
     },
