@@ -69,7 +69,6 @@
       <label v-for="scoreComp in scoreComps">
         <input
           type="radio"
-          :value="scoreComp.ie_hh"
           :checked="selectedScoreCompHash == scoreComp.nsc_eh"
           @change="set_score_comp(scoreComp.nsc_eh)"
         >
