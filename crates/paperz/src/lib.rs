@@ -23,6 +23,7 @@ pub const NAMED_SCORE_COMP_TAG: &str = "paperz_named_score_comp";
 entry_defs![
     Paper::entry_def(),
     PaperRoot::entry_def(),
+    Annotation::entry_def(),
     SensemakerEntry::entry_def()
 ];
 
@@ -38,6 +39,14 @@ pub struct Paper {
 
 #[hdk_entry]
 struct PaperRoot;
+
+#[hdk_entry]
+pub struct Annotation {
+    pub page_num: u64,
+    pub paragraph_num: u64,
+    pub what_it_says: String,
+    pub what_it_should_say: String,
+}
 
 #[hdk_extern]
 fn upload_paper(paper: Paper) -> ExternResult<HeaderHash> {
