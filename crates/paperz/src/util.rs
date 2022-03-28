@@ -52,13 +52,13 @@ pub fn try_get_element(entry_hash: EntryHash, get_options: GetOptions) -> Extern
 #[allow(dead_code)]
 pub fn try_from_element<T: TryFrom<Entry>>(element: Element) -> ExternResult<T> {
     match element.entry() {
-        element::ElementEntry::Present(entry) => {
-            T::try_from(entry.clone()).or(Err(WasmError::Guest(format!(
+        element::ElementEntry::Present(entry) => T::try_from(entry.clone()).map_err(|_| {
+            WasmError::Guest(format!(
                 "Couldn't convert Element entry {:?} into data type {}",
                 entry,
                 std::any::type_name::<T>()
-            ))))
-        }
+            ))
+        }),
         _ => Err(WasmError::Guest(format!(
             "Element {:?} does not have an entry",
             element

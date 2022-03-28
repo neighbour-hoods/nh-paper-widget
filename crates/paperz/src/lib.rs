@@ -1,11 +1,9 @@
 use hdk::prelude::*;
 
-use common::{
-    // create_sensemaker_entry_full, create_sensemaker_entry_parse, get_sensemaker_entry,
-    // get_sensemaker_entry_by_headerhash, mk_application_se, pack_ses_into_list_se,
-    // CreateSensemakerEntryInput, CreateSensemakerEntryInputParse, SchemeEntry,
-    SensemakerEntry
-};
+// create_sensemaker_entry_full, create_sensemaker_entry_parse, get_sensemaker_entry,
+// get_sensemaker_entry_by_headerhash, mk_application_se, pack_ses_into_list_se,
+// CreateSensemakerEntryInput, CreateSensemakerEntryInputParse, SchemeEntry,
+use common::SensemakerEntry;
 // use rep_lang_core::{
 //     abstract_syntax::{Expr, Lit, PrimOp},
 //     app, error,
@@ -43,7 +41,10 @@ struct PaperRoot;
 
 #[hdk_extern]
 fn upload_paper(paper: Paper) -> ExternResult<HeaderHash> {
-    debug!("upload_paper: received input of length {}", paper.blob_str.len());
+    debug!(
+        "upload_paper: received input of length {}",
+        paper.blob_str.len()
+    );
 
     create_paper_root_if_needed()?;
 
