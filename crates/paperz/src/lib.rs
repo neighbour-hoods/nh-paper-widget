@@ -94,3 +94,8 @@ fn create_paper_root_if_needed() -> ExternResult<bool> {
         Some(_) => Ok(false),
     }
 }
+
+pub const SM_COMP_ANCHOR: &str = "sm_comp";
+pub const SM_INIT_ANCHOR: &str = "sm_init";
+// this could be called `state`, but that is 5 letters instead of 4 and breaks symmetry.
+pub const SM_DATA_ANCHOR: &str = "sm_data";
