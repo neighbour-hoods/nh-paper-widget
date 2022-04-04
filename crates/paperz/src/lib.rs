@@ -17,8 +17,7 @@ use common::SensemakerEntry;
 mod util;
 
 pub const PAPER_TAG: &str = "paperz_paper";
-pub const REACTION_TAG: &str = "paperz_reaction";
-pub const NAMED_SCORE_COMP_TAG: &str = "paperz_named_score_comp";
+pub const ANN_TAG: &str = "paperz_annotationz";
 
 entry_defs![
     Paper::entry_def(),
@@ -38,10 +37,15 @@ pub struct Paper {
 
 #[hdk_entry]
 pub struct Annotation {
+    pub paper_ref: EntryHash, // should this be a HeaderHash?
     pub page_num: u64,
     pub paragraph_num: u64,
     pub what_it_says: String,
     pub what_it_should_say: String,
+}
+
+fn paper_anchor() -> ExternResult<EntryHash> {
+    anchor("paperz".into(), "".into())
 }
 
 #[hdk_extern]
@@ -53,16 +57,14 @@ fn upload_paper(paper: Paper) -> ExternResult<HeaderHash> {
 
     let paper_hh = create_entry(&paper)?;
     let paper_eh = hash_entry(&paper)?;
-    let paper_anchor = anchor("paperz".into(), "".into())?;
-    create_link(paper_anchor, paper_eh, LinkTag::new(PAPER_TAG))?;
+    create_link(paper_anchor()?, paper_eh, LinkTag::new(PAPER_TAG))?;
 
     Ok(paper_hh)
 }
 
 #[hdk_extern]
 fn get_all_papers(_: ()) -> ExternResult<Vec<(Paper, EntryHash)>> {
-    let paper_anchor = anchor("paperz".into(), "".into())?;
-    let paper_entry_links = get_links(paper_anchor, Some(LinkTag::new(PAPER_TAG)))?;
+    let paper_entry_links = get_links(paper_anchor()?, Some(LinkTag::new(PAPER_TAG)))?;
     let mut paperz: Vec<(Paper, EntryHash)> = Vec::new();
     for lnk in paper_entry_links {
         let res: ExternResult<(Paper, EntryHash)> = {
@@ -78,6 +80,21 @@ fn get_all_papers(_: ()) -> ExternResult<Vec<(Paper, EntryHash)>> {
         }
     }
     Ok(paperz)
+}
+
+fn ann_anchor() -> ExternResult<EntryHash> {
+    anchor("annotationz".into(), "".into())
+}
+
+#[hdk_extern]
+fn create_annotation(ann: Annotation) -> ExternResult<(EntryHash, HeaderHash)> {
+    let ann_hh = create_entry(&ann)?;
+    let ann_eh = hash_entry(&ann)?;
+    create_link(ann_anchor()?, ann_eh.clone(), LinkTag::new(ANN_TAG))?;
+
+    // TODO state machine `sm_data` initialization!
+
+    Ok((ann_eh, ann_hh))
 }
 
 pub const SM_COMP_ANCHOR: &str = "sm_comp";
