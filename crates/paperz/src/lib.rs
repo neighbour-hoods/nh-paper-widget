@@ -22,7 +22,6 @@ pub const NAMED_SCORE_COMP_TAG: &str = "paperz_named_score_comp";
 
 entry_defs![
     Paper::entry_def(),
-    PaperRoot::entry_def(),
     Annotation::entry_def(),
     SensemakerEntry::entry_def()
 ];
@@ -36,9 +35,6 @@ pub struct Paper {
     // encoded file bytes payload
     pub blob_str: String,
 }
-
-#[hdk_entry]
-struct PaperRoot;
 
 #[hdk_entry]
 pub struct Annotation {
@@ -55,18 +51,18 @@ fn upload_paper(paper: Paper) -> ExternResult<HeaderHash> {
         paper.blob_str.len()
     );
 
-    create_paper_root_if_needed()?;
-
     let paper_hh = create_entry(&paper)?;
     let paper_eh = hash_entry(&paper)?;
-    create_link(hash_entry(PaperRoot)?, paper_eh, LinkTag::new(PAPER_TAG))?;
+    let paper_anchor = anchor("paperz".into(), "".into())?;
+    create_link(paper_anchor, paper_eh, LinkTag::new(PAPER_TAG))?;
 
     Ok(paper_hh)
 }
 
 #[hdk_extern]
 fn get_all_papers(_: ()) -> ExternResult<Vec<(Paper, EntryHash)>> {
-    let paper_entry_links = get_links(hash_entry(PaperRoot)?, Some(LinkTag::new(PAPER_TAG)))?;
+    let paper_anchor = anchor("paperz".into(), "".into())?;
+    let paper_entry_links = get_links(paper_anchor, Some(LinkTag::new(PAPER_TAG)))?;
     let mut paperz: Vec<(Paper, EntryHash)> = Vec::new();
     for lnk in paper_entry_links {
         let res: ExternResult<(Paper, EntryHash)> = {
@@ -82,17 +78,6 @@ fn get_all_papers(_: ()) -> ExternResult<Vec<(Paper, EntryHash)>> {
         }
     }
     Ok(paperz)
-}
-
-/// returns true if created, false if already exists
-fn create_paper_root_if_needed() -> ExternResult<bool> {
-    match get(hash_entry(&PaperRoot)?, GetOptions::content())? {
-        None => {
-            let _hh = create_entry(&PaperRoot)?;
-            Ok(true)
-        }
-        Some(_) => Ok(false),
-    }
 }
 
 pub const SM_COMP_ANCHOR: &str = "sm_comp";
