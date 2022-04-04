@@ -93,11 +93,29 @@ fn create_annotation(ann: Annotation) -> ExternResult<(EntryHash, HeaderHash)> {
     create_link(ann_anchor()?, ann_eh.clone(), LinkTag::new(ANN_TAG))?;
 
     // TODO state machine `sm_data` initialization!
-
-    Ok((ann_eh, ann_hh))
+    match get_sm_init_se_eh("annotation".into())? {
+        None => Err(WasmError::Guest(
+            "sm_init is uninitialized for annotation".to_string(),
+        )),
+        Some(se_eh) => {
+            create_link(ann_eh.clone(), se_eh, LinkTag::new(SM_DATA_TAG))?;
+            Ok((ann_eh, ann_hh))
+        }
+    }
 }
 
 pub const SM_COMP_ANCHOR: &str = "sm_comp";
 pub const SM_INIT_ANCHOR: &str = "sm_init";
-// this could be called `state`, but that is 5 letters instead of 4 and breaks symmetry.
-pub const SM_DATA_ANCHOR: &str = "sm_data";
+pub const SM_DATA_TAG: &str = "sm_data";
+
+#[allow(dead_code)]
+fn get_sm_init_se_eh(label: String) -> ExternResult<Option<EntryHash>> {
+    let sm_init = get_links(
+        anchor(SM_INIT_ANCHOR.into(), label)?,
+        Some(LinkTag::new(SM_INIT_ANCHOR)),
+    )?;
+    match &sm_init[..] {
+        [sm_init_link] => Ok(Some(sm_init_link.target.clone())),
+        _ => Ok(None),
+    }
+}
