@@ -123,6 +123,17 @@ fn get_sm_init_se_eh(label: String) -> ExternResult<Option<EntryHash>> {
 // TODO check if a link exists for said label. if one does, return false.
 // if no link for said label, then create one and return true.
 #[allow(dead_code)]
-fn set_sm_init_se_eh(_label: String, _eh: EntryHash) -> ExternResult<bool> {
+#[allow(unused_variables)]
+fn set_sm_init_se_eh(label: String, eh: EntryHash) -> ExternResult<bool> {
+    todo!()
+}
+
+// for a given EntryHash, look for a state machine state linked to it with the label suffix
+// (link tag ~ `sm_data/$label`). look up the currently selected `sm_comp/$label` and apply that to
+// both the state entry, and the action. update the link off of `target_eh` s.t. it points to the
+// new state. this accomplishes "stepping" of the state machine.
+#[allow(dead_code)]
+#[allow(unused_variables)]
+fn step_sm(target_eh: EntryHash, label: String, act: String) -> ExternResult<bool> {
     todo!()
 }
