@@ -1,9 +1,9 @@
 use hdk::prelude::*;
 
-// create_sensemaker_entry_full, create_sensemaker_entry_parse, get_sensemaker_entry,
+// create_sensemaker_entry_full, get_sensemaker_entry,
 // get_sensemaker_entry_by_headerhash, mk_application_se, pack_ses_into_list_se,
 // CreateSensemakerEntryInput, CreateSensemakerEntryInputParse, SchemeEntry,
-use common::SensemakerEntry;
+use common::{create_sensemaker_entry_parse, CreateSensemakerEntryInputParse, SensemakerEntry};
 // use rep_lang_core::{
 //     abstract_syntax::{Expr, Lit, PrimOp},
 //     app, error,
@@ -121,26 +121,37 @@ fn get_sm_init_se_eh(label: String) -> ExternResult<Option<EntryHash>> {
 }
 
 #[hdk_extern]
-pub fn set_sm_init_se_eh((label, eh): (String, EntryHash)) -> ExternResult<bool> {
-    set_entry_link(SM_INIT_ANCHOR.into(), label, eh)
+pub fn set_sm_init_se_eh((label, expr_str): (String, String)) -> ExternResult<bool> {
+    let (_se_hh, se) = create_sensemaker_entry_parse(CreateSensemakerEntryInputParse {
+        expr: expr_str,
+        args: vec![],
+    })?;
+    let se_eh = hash_entry(se)?;
+    set_entry_link(SM_INIT_ANCHOR.into(), label, se_eh)
 }
 
 #[hdk_extern]
-pub fn set_sm_comp_se_eh((label, eh): (String, EntryHash)) -> ExternResult<bool> {
-    set_entry_link(SM_COMP_ANCHOR.into(), label, eh)
+pub fn set_sm_comp_se_eh((label, expr_str): (String, String)) -> ExternResult<bool> {
+    let (_se_hh, se) = create_sensemaker_entry_parse(CreateSensemakerEntryInputParse {
+        expr: expr_str,
+        args: vec![],
+    })?;
+    let se_eh = hash_entry(se)?;
+    set_entry_link(SM_COMP_ANCHOR.into(), label, se_eh)
 }
 
+// updates the link from the anchor to point to `eh`. will remove any existing links.
+// returns true if there were links which were "overwritten".
 fn set_entry_link(anchor_type: String, anchor_text: String, eh: EntryHash) -> ExternResult<bool> {
     let anchor = anchor(anchor_type.clone(), anchor_text)?;
     let link_tag = LinkTag::new(anchor_type);
     let links = get_links(anchor.clone(), Some(link_tag.clone()))?;
-    match &links[..] {
-        [] => {
-            create_link(anchor, eh, link_tag)?;
-            Ok(true)
-        }
-        _ => Ok(false),
+    let did_overwrite = !links.is_empty();
+    for link in links {
+        delete_link(link.create_link_hash)?;
     }
+    create_link(anchor, eh, link_tag)?;
+    Ok(did_overwrite)
 }
 
 // for a given EntryHash, look for a state machine state linked to it with the label suffix
