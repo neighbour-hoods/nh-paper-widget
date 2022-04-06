@@ -17,7 +17,6 @@ use common::SensemakerEntry;
 mod util;
 
 pub const PAPER_TAG: &str = "paperz_paper";
-pub const ANN_TAG: &str = "paperz_annotationz";
 
 entry_defs![
     Paper::entry_def(),
@@ -82,8 +81,10 @@ fn get_all_papers(_: ()) -> ExternResult<Vec<(Paper, EntryHash)>> {
     Ok(paperz)
 }
 
+pub const ANN_TAG: &str = "annotationz";
+
 fn ann_anchor() -> ExternResult<EntryHash> {
-    anchor("annotationz".into(), "".into())
+    anchor(ANN_TAG.into(), "".into())
 }
 
 #[hdk_extern]
@@ -93,7 +94,7 @@ fn create_annotation(ann: Annotation) -> ExternResult<(EntryHash, HeaderHash)> {
     create_link(ann_anchor()?, ann_eh.clone(), LinkTag::new(ANN_TAG))?;
 
     // TODO abstract/generalize this
-    match get_sm_init_se_eh("annotation".into())? {
+    match get_sm_init_se_eh(ANN_TAG.into())? {
         None => Err(WasmError::Guest(
             "sm_init is uninitialized for annotation".to_string(),
         )),
@@ -117,4 +118,11 @@ fn get_sm_init_se_eh(label: String) -> ExternResult<Option<EntryHash>> {
         [sm_init_link] => Ok(Some(sm_init_link.target.clone())),
         _ => Ok(None),
     }
+}
+
+// TODO check if a link exists for said label. if one does, return false.
+// if no link for said label, then create one and return true.
+#[allow(dead_code)]
+fn set_sm_init_se_eh(_label: String, _eh: EntryHash) -> ExternResult<bool> {
+    todo!()
 }
