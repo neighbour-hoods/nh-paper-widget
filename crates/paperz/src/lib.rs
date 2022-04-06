@@ -121,6 +121,7 @@ fn get_sm_init_se_eh(label: String) -> ExternResult<Option<EntryHash>> {
 }
 
 #[hdk_extern]
+/// set the sm_init state for the label to the `rep_lang` interpretation of `expr_str`
 pub fn set_sm_init_se_eh((label, expr_str): (String, String)) -> ExternResult<bool> {
     let (_se_hh, se) = create_sensemaker_entry_parse(CreateSensemakerEntryInputParse {
         expr: expr_str,
@@ -131,6 +132,7 @@ pub fn set_sm_init_se_eh((label, expr_str): (String, String)) -> ExternResult<bo
 }
 
 #[hdk_extern]
+/// set the sm_comp state for the label to the `rep_lang` interpretation of `expr_str`
 pub fn set_sm_comp_se_eh((label, expr_str): (String, String)) -> ExternResult<bool> {
     let (_se_hh, se) = create_sensemaker_entry_parse(CreateSensemakerEntryInputParse {
         expr: expr_str,
@@ -140,8 +142,8 @@ pub fn set_sm_comp_se_eh((label, expr_str): (String, String)) -> ExternResult<bo
     set_entry_link(SM_COMP_ANCHOR.into(), label, se_eh)
 }
 
-// updates the link from the anchor to point to `eh`. will remove any existing links.
-// returns true if there were links which were "overwritten".
+/// updates the link from the anchor to point to `eh`. will remove any existing links.
+/// returns true if there were links which were "overwritten".
 fn set_entry_link(anchor_type: String, anchor_text: String, eh: EntryHash) -> ExternResult<bool> {
     let anchor = anchor(anchor_type.clone(), anchor_text)?;
     let link_tag = LinkTag::new(anchor_type);
@@ -154,10 +156,10 @@ fn set_entry_link(anchor_type: String, anchor_text: String, eh: EntryHash) -> Ex
     Ok(did_overwrite)
 }
 
-// for a given EntryHash, look for a state machine state linked to it with the label suffix
-// (link tag ~ `sm_data/$label`). look up the currently selected `sm_comp/$label` and apply that to
-// both the state entry, and the action. update the link off of `target_eh` s.t. it points to the
-// new state. this accomplishes "stepping" of the state machine.
+/// for a given EntryHash, look for a state machine state linked to it with the label suffix
+/// (link tag ~ `sm_data/$label`). look up the currently selected `sm_comp/$label` and apply that to
+/// both the state entry, and the action. update the link off of `target_eh` s.t. it points to the
+/// new state. this accomplishes "stepping" of the state machine.
 #[allow(dead_code)]
 #[allow(unused_variables)]
 fn step_sm(target_eh: EntryHash, label: String, act: String) -> ExternResult<bool> {
