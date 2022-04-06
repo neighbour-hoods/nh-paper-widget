@@ -92,7 +92,7 @@ fn create_annotation(ann: Annotation) -> ExternResult<(EntryHash, HeaderHash)> {
     let ann_eh = hash_entry(&ann)?;
     create_link(ann_anchor()?, ann_eh.clone(), LinkTag::new(ANN_TAG))?;
 
-    // TODO state machine `sm_data` initialization!
+    // TODO abstract/generalize this
     match get_sm_init_se_eh("annotation".into())? {
         None => Err(WasmError::Guest(
             "sm_init is uninitialized for annotation".to_string(),
@@ -108,7 +108,6 @@ pub const SM_COMP_ANCHOR: &str = "sm_comp";
 pub const SM_INIT_ANCHOR: &str = "sm_init";
 pub const SM_DATA_TAG: &str = "sm_data";
 
-#[allow(dead_code)]
 fn get_sm_init_se_eh(label: String) -> ExternResult<Option<EntryHash>> {
     let sm_init = get_links(
         anchor(SM_INIT_ANCHOR.into(), label)?,
