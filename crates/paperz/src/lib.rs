@@ -110,12 +110,23 @@ pub const SM_INIT_ANCHOR: &str = "sm_init";
 pub const SM_DATA_TAG: &str = "sm_data";
 
 fn get_sm_init_se_eh(label: String) -> ExternResult<Option<EntryHash>> {
-    let sm_init = get_links(
-        anchor(SM_INIT_ANCHOR.into(), label)?,
-        Some(LinkTag::new(SM_INIT_ANCHOR)),
+    get_single_linked_entry(SM_INIT_ANCHOR.into(), label)
+}
+
+fn get_sm_comp_se_eh(label: String) -> ExternResult<Option<EntryHash>> {
+    get_single_linked_entry(SM_COMP_ANCHOR.into(), label)
+}
+
+fn get_single_linked_entry(
+    anchor_type: String,
+    anchor_text: String,
+) -> ExternResult<Option<EntryHash>> {
+    let links = get_links(
+        anchor(anchor_type.clone(), anchor_text)?,
+        Some(LinkTag::new(anchor_type)),
     )?;
-    match &sm_init[..] {
-        [sm_init_link] => Ok(Some(sm_init_link.target.clone())),
+    match &links[..] {
+        [link] => Ok(Some(link.target.clone())),
         _ => Ok(None),
     }
 }
@@ -163,5 +174,6 @@ fn set_entry_link(anchor_type: String, anchor_text: String, eh: EntryHash) -> Ex
 #[allow(dead_code)]
 #[allow(unused_variables)]
 fn step_sm(target_eh: EntryHash, label: String, act: String) -> ExternResult<bool> {
+    let sm_comp = get_sm_comp_se_eh(ANN_TAG.into());
     todo!()
 }
