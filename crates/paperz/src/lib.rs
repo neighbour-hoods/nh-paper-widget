@@ -120,12 +120,27 @@ fn get_sm_init_se_eh(label: String) -> ExternResult<Option<EntryHash>> {
     }
 }
 
-// TODO check if a link exists for said label. if one does, return false.
-// if no link for said label, then create one and return true.
-#[allow(dead_code)]
-#[allow(unused_variables)]
-fn set_sm_init_se_eh(label: String, eh: EntryHash) -> ExternResult<bool> {
-    todo!()
+#[hdk_extern]
+pub fn set_sm_init_se_eh((label, eh): (String, EntryHash)) -> ExternResult<bool> {
+    set_entry_link(SM_INIT_ANCHOR.into(), label, eh)
+}
+
+#[hdk_extern]
+pub fn set_sm_comp_se_eh((label, eh): (String, EntryHash)) -> ExternResult<bool> {
+    set_entry_link(SM_COMP_ANCHOR.into(), label, eh)
+}
+
+fn set_entry_link(anchor_type: String, anchor_text: String, eh: EntryHash) -> ExternResult<bool> {
+    let anchor = anchor(anchor_type.clone(), anchor_text)?;
+    let link_tag = LinkTag::new(anchor_type);
+    let links = get_links(anchor.clone(), Some(link_tag.clone()))?;
+    match &links[..] {
+        [] => {
+            create_link(anchor, eh, link_tag)?;
+            Ok(true)
+        }
+        _ => Ok(false),
+    }
 }
 
 // for a given EntryHash, look for a state machine state linked to it with the label suffix
