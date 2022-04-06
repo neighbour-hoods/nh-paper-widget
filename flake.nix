@@ -96,7 +96,7 @@
             '';
           };
 
-        packages.memez-naersk =
+        packages.paperz-naersk =
           let
             wasmTarget = "wasm32-unknown-unknown";
 
@@ -109,26 +109,26 @@
               rustc = rust;
             };
 
-            memez-wasm = naersk'.buildPackage {
+            paperz-wasm = naersk'.buildPackage {
               src = ./.;
               copyLibs = true;
               CARGO_BUILD_TARGET = wasmTarget;
-              cargoBuildOptions = (opts: opts ++ ["--package=memez"]);
+              cargoBuildOptions = (opts: opts ++ ["--package=paperz"]);
             };
 
           in
 
           pkgs.stdenv.mkDerivation {
-            name = "memez-happ";
+            name = "paperz-happ";
             buildInputs = [
               holonixMain.pkgs.holochainBinaries.hc
             ];
             unpackPhase = "true";
             installPhase = ''
               mkdir $out
-              cp ${memez-wasm}/lib/memez.wasm $out
-              cp ${happs/memez/dna.yaml} $out/dna.yaml
-              cp ${happs/memez/happ.yaml} $out/happ.yaml
+              cp ${paperz-wasm}/lib/paperz.wasm $out
+              cp ${happs/paperz/dna.yaml} $out/dna.yaml
+              cp ${happs/paperz/happ.yaml} $out/happ.yaml
               hc dna pack $out
               hc app pack $out
             '';
