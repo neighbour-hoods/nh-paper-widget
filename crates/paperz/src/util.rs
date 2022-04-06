@@ -34,6 +34,19 @@ pub fn try_get_and_convert_with_hh<T: TryFrom<Entry>>(
     }
 }
 
+pub fn get_hh(entry_hash: EntryHash, get_options: GetOptions) -> ExternResult<HeaderHash> {
+    match get(entry_hash.clone(), get_options)? {
+        Some(element) => {
+            let hh = element.header_address().clone();
+            Ok(hh)
+        }
+        None => Err(WasmError::Guest(format!(
+            "There is no element at the hash {}",
+            entry_hash
+        ))),
+    }
+}
+
 /// Attempts to get an element at the entry_hash and returns it
 /// if the element exists
 #[allow(dead_code)]

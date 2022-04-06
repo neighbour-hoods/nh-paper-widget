@@ -1,9 +1,12 @@
 use hdk::prelude::*;
 
 // create_sensemaker_entry_full, get_sensemaker_entry,
-// get_sensemaker_entry_by_headerhash, mk_application_se, pack_ses_into_list_se,
+// get_sensemaker_entry_by_headerhash, pack_ses_into_list_se,
 // CreateSensemakerEntryInput, CreateSensemakerEntryInputParse, SchemeEntry,
-use common::{create_sensemaker_entry_parse, CreateSensemakerEntryInputParse, SensemakerEntry};
+use common::{
+    create_sensemaker_entry_parse, mk_application_se, CreateSensemakerEntryInputParse,
+    SensemakerEntry,
+};
 // use rep_lang_core::{
 //     abstract_syntax::{Expr, Lit, PrimOp},
 //     app, error,
@@ -167,13 +170,54 @@ fn set_entry_link(anchor_type: String, anchor_text: String, eh: EntryHash) -> Ex
     Ok(did_overwrite)
 }
 
+#[derive(Debug, Serialize, Deserialize, SerializedBytes)]
+pub struct StepSmInput {
+    target_eh: EntryHash,
+    label: String,
+    act: String,
+}
+
 /// for a given EntryHash, look for a state machine state linked to it with the label suffix
 /// (link tag ~ `sm_data/$label`). look up the currently selected `sm_comp/$label` and apply that to
 /// both the state entry, and the action. update the link off of `target_eh` s.t. it points to the
 /// new state. this accomplishes "stepping" of the state machine.
-#[allow(dead_code)]
-#[allow(unused_variables)]
-fn step_sm(target_eh: EntryHash, label: String, act: String) -> ExternResult<bool> {
-    let sm_comp = get_sm_comp_se_eh(ANN_TAG.into());
-    todo!()
+#[hdk_extern]
+fn step_sm(
+    StepSmInput {
+        target_eh,
+        label,
+        act,
+    }: StepSmInput,
+) -> ExternResult<()> {
+    let sm_comp_eh = match get_sm_comp_se_eh(ANN_TAG.into())? {
+        Some(eh) => Ok(eh),
+        None => Err(WasmError::Guest("sm_comp: invalid".into())),
+    }?;
+    let sm_data_link_tag = LinkTag::new(format!("{}/{}", SM_DATA_TAG, label));
+    let sm_data_link = {
+        let links = get_links(target_eh.clone(), Some(sm_data_link_tag.clone()))?;
+        match &links[..] {
+            [link] => Ok(link.clone()),
+            _ => Err(WasmError::Guest(format!(
+                "step_sm: multiple sm_data/{} links exist. there should only be one.",
+                label
+            ))),
+        }
+    }?;
+    let sm_data_eh = sm_data_link.target;
+    let sm_comp_hh = util::get_hh(sm_comp_eh, GetOptions::content())?;
+    let sm_data_hh = util::get_hh(sm_data_eh, GetOptions::content())?;
+
+    let (act_se_hh, _act_se) = create_sensemaker_entry_parse(CreateSensemakerEntryInputParse {
+        expr: act,
+        args: vec![],
+    })?;
+
+    let application_se = mk_application_se(vec![sm_comp_hh, sm_data_hh, act_se_hh])?;
+    debug!("{:?}", application_se);
+    let application_se_eh = hash_entry(&application_se)?;
+
+    delete_link(sm_data_link.create_link_hash)?;
+    create_link(target_eh, application_se_eh, sm_data_link_tag)?;
+    Ok(())
 }
