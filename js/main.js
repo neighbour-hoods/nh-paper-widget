@@ -30,6 +30,7 @@ const App = {
       },
       sm_comp: {
       },
+      paper_upload_title: null,
     }
   },
   async created () {
@@ -109,6 +110,33 @@ const App = {
     async set_sm_comp(comp_val) {
       console.log("set_sm_comp: ");
       console.log(comp_val);
+    },
+    async handlePaperSubmit(evt) {
+      console.log("handlePaperSubmit");
+      console.log(this.paper_upload_title);
+      console.log(evt);
+      let file = evt.target[0].files[0];
+      let obj = {
+        title: this.paper_upload_title,
+        filename: file.name,
+        blob_str: await getBase64(file),
+      };
+      console.log(obj);
+
+      let info = await this.hcInfo.appWs.appInfo({
+        // TODO figure out why this works... it shouldn't, I think?
+        installed_app_id: 'test-app',
+      });
+      const cell_id = info.cell_data[0].cell_id;
+      let hh = await this.hcInfo.appWs.callZome({
+        cap: null,
+        cell_id: cell_id,
+        zome_name: 'paperz_main_zome',
+        fn_name: 'upload_paper',
+        payload: obj,
+        provenance: cell_id[1],
+      });
+      console.log(hh);
     }
   },
   mounted() {

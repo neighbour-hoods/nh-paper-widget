@@ -25,17 +25,18 @@
   <div id="app">
     <div class="container">
       <!--UPLOAD-->
-      <form enctype="multipart/form-data" novalidate v-if="isInitial || isSaving">
+      <form enctype="multipart/form-data" novalidate v-if="isInitial || isSaving"  @submit.prevent="handlePaperSubmit($event);">
         <h3 class='subtitle'>upload paper</h3>
         <div class="dropbox">
-          <input type="file" multiple :disabled="isSaving" @change="save($event.target.files);"
-            accept="image/*" class="input-file">
-            <p v-if="isInitial">
-              drag your paper here to begin<br> or click to browse
-            </p>
-            <p v-if="isSaving">
-              uploading paper...
-            </p>
+          <input type="file" multiple :disabled="isSaving" accept=".pdf" class="input-file">
+          <p v-if="isInitial">
+            drag your paper here to begin<br> or click to browse
+          </p>
+          <p v-if="isSaving">
+            uploading paper...
+          </p>
+          title: <input type="text" v-model="paper_upload_title" required /> <br>
+          <button type="submit">submit</button>
         </div>
       </form>
   </div>
