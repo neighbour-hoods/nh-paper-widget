@@ -22,6 +22,7 @@ mod util;
 pub const PAPER_TAG: &str = "paperz_paper";
 
 entry_defs![
+    Path::entry_def(),
     Paper::entry_def(),
     Annotation::entry_def(),
     SensemakerEntry::entry_def()
