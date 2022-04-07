@@ -60,7 +60,7 @@ const App = {
         cap: null,
         cell_id: cell_id,
         zome_name: 'paperz_main_zome',
-        fn_name: 'get_sm_init_se_eh',
+        fn_name: 'get_sm_init',
         payload: label,
         provenance: cell_id[1],
       });
@@ -68,7 +68,7 @@ const App = {
         cap: null,
         cell_id: cell_id,
         zome_name: 'paperz_main_zome',
-        fn_name: 'get_sm_comp_se_eh',
+        fn_name: 'get_sm_comp',
         payload: label,
         provenance: cell_id[1],
       });
