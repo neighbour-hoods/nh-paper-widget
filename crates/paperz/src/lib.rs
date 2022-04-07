@@ -112,10 +112,12 @@ pub const SM_COMP_ANCHOR: &str = "sm_comp";
 pub const SM_INIT_ANCHOR: &str = "sm_init";
 pub const SM_DATA_TAG: &str = "sm_data";
 
+#[hdk_extern]
 fn get_sm_init_se_eh(label: String) -> ExternResult<Option<EntryHash>> {
     get_single_linked_entry(SM_INIT_ANCHOR.into(), label)
 }
 
+#[hdk_extern]
 fn get_sm_comp_se_eh(label: String) -> ExternResult<Option<EntryHash>> {
     get_single_linked_entry(SM_COMP_ANCHOR.into(), label)
 }
