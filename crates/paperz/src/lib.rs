@@ -98,11 +98,11 @@ fn create_annotation(ann: Annotation) -> ExternResult<(EntryHash, HeaderHash)> {
     create_link(ann_anchor()?, ann_eh.clone(), LinkTag::new(ANN_TAG))?;
 
     // TODO abstract/generalize this
-    match get_sm_init_se_eh(ANN_TAG.into())? {
+    match get_sm_init(ANN_TAG.into())? {
         None => Err(WasmError::Guest(
             "sm_init is uninitialized for annotation".to_string(),
         )),
-        Some(se_eh) => {
+        Some((se_eh, _se)) => {
             create_link(ann_eh.clone(), se_eh, LinkTag::new(SM_DATA_TAG))?;
             Ok((ann_eh, ann_hh))
         }
@@ -114,13 +114,27 @@ pub const SM_INIT_ANCHOR: &str = "sm_init";
 pub const SM_DATA_TAG: &str = "sm_data";
 
 #[hdk_extern]
-fn get_sm_init_se_eh(label: String) -> ExternResult<Option<EntryHash>> {
-    get_single_linked_entry(SM_INIT_ANCHOR.into(), label)
+fn get_sm_init(label: String) -> ExternResult<Option<(EntryHash, SensemakerEntry)>> {
+    get_sm_se_eh(SM_INIT_ANCHOR.into(), label)
 }
 
 #[hdk_extern]
-fn get_sm_comp_se_eh(label: String) -> ExternResult<Option<EntryHash>> {
-    get_single_linked_entry(SM_COMP_ANCHOR.into(), label)
+fn get_sm_comp(label: String) -> ExternResult<Option<(EntryHash, SensemakerEntry)>> {
+    get_sm_se_eh(SM_COMP_ANCHOR.into(), label)
+}
+
+fn get_sm_se_eh(
+    anchor_type: String,
+    anchor_text: String,
+) -> ExternResult<Option<(EntryHash, SensemakerEntry)>> {
+    let opt_eh = get_single_linked_entry(anchor_type, anchor_text)?;
+    match opt_eh {
+        Some(eh) => {
+            let se = util::try_get_and_convert(eh.clone(), GetOptions::content())?;
+            Ok(Some((eh, se)))
+        }
+        None => Ok(None),
+    }
 }
 
 fn get_single_linked_entry(
@@ -192,8 +206,8 @@ fn step_sm(
         act,
     }: StepSmInput,
 ) -> ExternResult<()> {
-    let sm_comp_eh = match get_sm_comp_se_eh(ANN_TAG.into())? {
-        Some(eh) => Ok(eh),
+    let sm_comp_eh = match get_sm_comp(ANN_TAG.into())? {
+        Some((eh, _se)) => Ok(eh),
         None => Err(WasmError::Guest("sm_comp: invalid".into())),
     }?;
     let sm_data_link_tag = LinkTag::new(format!("{}/{}", SM_DATA_TAG, label));
