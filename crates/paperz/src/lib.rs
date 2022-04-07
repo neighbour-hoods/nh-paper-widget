@@ -154,23 +154,22 @@ fn get_single_linked_entry(
 #[hdk_extern]
 /// set the sm_init state for the label to the `rep_lang` interpretation of `expr_str`
 pub fn set_sm_init_se_eh((label, expr_str): (String, String)) -> ExternResult<bool> {
-    let (_se_hh, se) = create_sensemaker_entry_parse(CreateSensemakerEntryInputParse {
-        expr: expr_str,
-        args: vec![],
-    })?;
-    let se_eh = hash_entry(se)?;
-    set_entry_link(SM_INIT_ANCHOR.into(), label, se_eh)
+    set_sm_se_eh(SM_INIT_ANCHOR.into(), label, expr_str)
 }
 
 #[hdk_extern]
 /// set the sm_comp state for the label to the `rep_lang` interpretation of `expr_str`
 pub fn set_sm_comp_se_eh((label, expr_str): (String, String)) -> ExternResult<bool> {
+    set_sm_se_eh(SM_COMP_ANCHOR.into(), label, expr_str)
+}
+
+fn set_sm_se_eh(anchor_type: String, anchor_text: String, expr_str: String) -> ExternResult<bool> {
     let (_se_hh, se) = create_sensemaker_entry_parse(CreateSensemakerEntryInputParse {
         expr: expr_str,
         args: vec![],
     })?;
     let se_eh = hash_entry(se)?;
-    set_entry_link(SM_COMP_ANCHOR.into(), label, se_eh)
+    set_entry_link(anchor_type, anchor_text, se_eh)
 }
 
 /// updates the link from the anchor to point to `eh`. will remove any existing links.
