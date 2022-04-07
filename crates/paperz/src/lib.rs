@@ -30,8 +30,6 @@ entry_defs![
 
 #[hdk_entry]
 pub struct Paper {
-    // human-readable title
-    pub title: String,
     // must include extension
     pub filename: String,
     // encoded file bytes payload

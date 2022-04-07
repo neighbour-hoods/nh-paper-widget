@@ -35,14 +35,12 @@
           <p v-if="isSaving">
             uploading paper...
           </p>
-          title: <input type="text" v-model="paper_upload_title" required /> <br>
           <button type="submit">submit</button>
         </div>
       </form>
 
     <div v-for="paper in paperz" class="uploaded-paper">
       <!-- `paper` is a list w/ 2 elements. first is EntryHash. second is the object. -->
-      title: {{ paper[1].title }}
       filename: {{ paper[1].filename }}
     </div>
   </div>

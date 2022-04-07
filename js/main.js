@@ -30,7 +30,6 @@ const App = {
       },
       sm_comp: {
       },
-      paper_upload_title: null,
     }
   },
   async created () {
@@ -115,6 +114,7 @@ const App = {
         payload: null,
         provenance: cell_id[1],
       });
+      console.log("paperz:");
       console.log(this.paperz);
     },
     async save(paper) {
@@ -132,11 +132,9 @@ const App = {
     },
     async handlePaperSubmit(evt) {
       console.log("handlePaperSubmit");
-      console.log(this.paper_upload_title);
       console.log(evt);
       let file = evt.target[0].files[0];
       let obj = {
-        title: this.paper_upload_title,
         filename: file.name,
         blob_str: await getBase64(file),
       };
