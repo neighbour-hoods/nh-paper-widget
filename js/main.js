@@ -78,6 +78,8 @@ const App = {
     console.log(this.sm_init);
     console.log("sm_comp:");
     console.log(this.sm_comp);
+
+    this.get_paperz()
   },
   computed: {
     isInitial() {
@@ -99,9 +101,26 @@ const App = {
       this.currentStatus = STATUS_INITIAL;
       this.uploadError = null;
     },
+    async get_paperz() {
+      let info = await this.hcInfo.appWs.appInfo({
+        // TODO figure out why this works... it shouldn't, I think?
+        installed_app_id: 'test-app',
+      });
+      const cell_id = info.cell_data[0].cell_id;
+      this.paperz = await this.hcInfo.appWs.callZome({
+        cap: null,
+        cell_id: cell_id,
+        zome_name: 'paperz_main_zome',
+        fn_name: 'get_all_papers',
+        payload: null,
+        provenance: cell_id[1],
+      });
+      console.log(this.paperz);
+    },
     async save(paper) {
       console.log("paper:");
       console.log(paper);
+      this.get_paperz();
     },
     async set_sm_init(init_val) {
       console.log("set_sm_init: ");

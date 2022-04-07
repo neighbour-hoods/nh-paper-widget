@@ -66,15 +66,15 @@ fn upload_paper(paper: Paper) -> ExternResult<HeaderHash> {
 }
 
 #[hdk_extern]
-fn get_all_papers(_: ()) -> ExternResult<Vec<(Paper, EntryHash)>> {
+fn get_all_papers(_: ()) -> ExternResult<Vec<(EntryHash, Paper)>> {
     let paper_entry_links = get_links(paper_anchor()?, Some(LinkTag::new(PAPER_TAG)))?;
-    let mut paperz: Vec<(Paper, EntryHash)> = Vec::new();
+    let mut paperz: Vec<(EntryHash, Paper)> = Vec::new();
     for lnk in paper_entry_links {
-        let res: ExternResult<(Paper, EntryHash)> = {
+        let res: ExternResult<(EntryHash, Paper)> = {
             let paper_eh = lnk.target;
             let (paper, _hh) =
                 util::try_get_and_convert_with_hh(paper_eh.clone(), GetOptions::content())?;
-            Ok((paper, paper_eh))
+            Ok((paper_eh, paper))
         };
 
         match res {
