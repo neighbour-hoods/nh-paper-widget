@@ -42,6 +42,7 @@
     <div v-for="paper in paperz" class="uploaded-paper">
       <!-- `paper` is a list w/ 2 elements. first is EntryHash. second is the object. -->
       filename: {{ paper[1].filename }}
+      <iframe v-bind:src="`${paper[1].blob_str}`" width="100%" height="500px">
     </div>
   </div>
 
