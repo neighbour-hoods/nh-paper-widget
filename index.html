@@ -24,6 +24,38 @@
   <section id="general-wrapper">
   <div id="app">
     <div class="container">
+      <h3 class='subtitle'>set sm_init</h3>
+      <form id="sm_init" @submit.prevent="set_sm_init">
+        label: <input type="text" v-model="sm_submit.sm_init.label" required /> <br>
+        expr_str: <textarea
+          id="comp"
+          cols="28"
+          rows="10"
+          v-model="sm_submit.sm_init.expr_str"
+          required
+        ></textarea>
+        <br>
+        <button type="submit">submit</button>
+      </form>
+    </div>
+
+    <div class="container">
+      <h3 class='subtitle'>set sm_comp</h3>
+      <form id="sm_comp" @submit.prevent="set_sm_comp">
+        label: <input type="text" v-model="sm_submit.sm_comp.label" required /> <br>
+        expr_str: <textarea
+          id="comp"
+          cols="28"
+          rows="10"
+          v-model="sm_submit.sm_comp.expr_str"
+          required
+        ></textarea>
+        <br>
+        <button type="submit">submit</button>
+      </form>
+    </div>
+
+    <div class="container">
       <!--UPLOAD-->
       <form enctype="multipart/form-data" novalidate v-if="isInitial || isSaving"  @submit.prevent="handlePaperSubmit($event);">
         <h3 class='subtitle'>upload paper</h3>

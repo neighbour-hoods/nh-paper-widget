@@ -26,9 +26,19 @@ const App = {
       hcInfo: null,
       paperz: [],
       annotationz: [],
-      sm_init: {
+      sm_submit: {
+        sm_init: {
+          label: "annotationz",
+          expr_str: "0",
+        },
+        sm_comp: {
+          label: "annotationz",
+          expr_str: "(lam [st act] st)",
+        },
       },
-      sm_comp: {
+      sm_init_s: {
+      },
+      sm_comp_s: {
       },
     }
   },
@@ -56,7 +66,7 @@ const App = {
     for (var i = 0; i < labels.length; i++) {
       let label = labels[i];
 
-      this.sm_init[label] = await this.hcInfo.appWs.callZome({
+      this.sm_init_s[label] = await this.hcInfo.appWs.callZome({
         cap: null,
         cell_id: cell_id,
         zome_name: 'paperz_main_zome',
@@ -64,7 +74,7 @@ const App = {
         payload: label,
         provenance: cell_id[1],
       });
-      this.sm_comp[label] = await this.hcInfo.appWs.callZome({
+      this.sm_comp_s[label] = await this.hcInfo.appWs.callZome({
         cap: null,
         cell_id: cell_id,
         zome_name: 'paperz_main_zome',
@@ -74,9 +84,9 @@ const App = {
       });
     }
     console.log("sm_init:");
-    console.log(this.sm_init);
+    console.log(this.sm_init_s);
     console.log("sm_comp:");
-    console.log(this.sm_comp);
+    console.log(this.sm_comp_s);
 
     this.get_paperz()
   },
@@ -117,13 +127,37 @@ const App = {
       console.log("paperz:");
       console.log(this.paperz);
     },
-    async set_sm_init(init_val) {
-      console.log("set_sm_init: ");
-      console.log(init_val);
+    async set_sm_init() {
+      let info = await this.hcInfo.appWs.appInfo({
+        // TODO figure out why this works... it shouldn't, I think?
+        installed_app_id: 'test-app',
+      });
+      const cell_id = info.cell_data[0].cell_id;
+      let res = await this.hcInfo.appWs.callZome({
+        cap: null,
+        cell_id: cell_id,
+        zome_name: 'paperz_main_zome',
+        fn_name: 'set_sm_init_se_eh',
+        payload: [this.sm_submit.sm_init.label, this.sm_submit.sm_init.expr_str],
+        provenance: cell_id[1],
+      });
+      console.log(res);
     },
-    async set_sm_comp(comp_val) {
-      console.log("set_sm_comp: ");
-      console.log(comp_val);
+    async set_sm_comp() {
+      let info = await this.hcInfo.appWs.appInfo({
+        // TODO figure out why this works... it shouldn't, I think?
+        installed_app_id: 'test-app',
+      });
+      const cell_id = info.cell_data[0].cell_id;
+      let res = await this.hcInfo.appWs.callZome({
+        cap: null,
+        cell_id: cell_id,
+        zome_name: 'paperz_main_zome',
+        fn_name: 'set_sm_comp_se_eh',
+        payload: [this.sm_submit.sm_comp.label, this.sm_submit.sm_comp.expr_str],
+        provenance: cell_id[1],
+      });
+      console.log(res);
     },
     async handlePaperSubmit(evt) {
       this.currentStatus = STATUS_SAVING;
