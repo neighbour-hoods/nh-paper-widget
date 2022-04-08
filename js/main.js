@@ -117,11 +117,6 @@ const App = {
       console.log("paperz:");
       console.log(this.paperz);
     },
-    async save(paper) {
-      console.log("paper:");
-      console.log(paper);
-      this.get_paperz();
-    },
     async set_sm_init(init_val) {
       console.log("set_sm_init: ");
       console.log(init_val);
@@ -131,6 +126,7 @@ const App = {
       console.log(comp_val);
     },
     async handlePaperSubmit(evt) {
+      this.currentStatus = STATUS_SAVING;
       console.log("handlePaperSubmit");
       console.log(evt);
       let file = evt.target[0].files[0];
@@ -154,6 +150,7 @@ const App = {
         provenance: cell_id[1],
       });
       console.log(hh);
+      this.currentStatus = STATUS_INITIAL;
     }
   },
   mounted() {
