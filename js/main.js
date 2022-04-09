@@ -93,6 +93,11 @@ const App = {
       this.currentStatus = STATUS_INITIAL;
       this.uploadError = null;
     },
+    async handleHcPortSubmit() {
+      localStorage.setItem('hcAppPort', this.hcAppPort);
+      localStorage.setItem('hcAdminPort', this.hcAdminPort);
+      window.location.reload()
+    },
     async get_sm_init_and_comp_s() {
       const labels = ["annotationz"];
 
