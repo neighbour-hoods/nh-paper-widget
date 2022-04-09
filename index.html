@@ -84,7 +84,7 @@
       filename: {{ paper[1].filename }}
       <!-- it would make more sense for the form to go below the iframe, but in that
            configuration it won't render. I am not sure why. -->
-      <form id="create_annotation" @submit.prevent="handleCreateAnnotationSubmit(`${paper[0]}`, $event )">
+      <form id="create_annotation" @submit.prevent="handleCreateAnnotationSubmit(paper[0], $event)">
         page #: <input name="page_num" type="number" required /> <br>
         paragraph #: <input name="paragraph_num" type="number" required /> <br>
         what it says: <input name="what_it_says" type="text" required /> <br>

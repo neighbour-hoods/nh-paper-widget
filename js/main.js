@@ -213,8 +213,30 @@ const App = {
       this.get_paperz();
     },
     async handleCreateAnnotationSubmit(paper_ref, evt) {
-      console.log(paper_ref);
-      console.log(evt);
+      let obj = {
+        paper_ref: paper_ref,
+        page_num: evt.target.elements.page_num.valueAsNumber,
+        paragraph_num: evt.target.elements.paragraph_num.valueAsNumber,
+        what_it_says: evt.target.elements.what_it_says.value,
+        what_it_should_say: evt.target.elements.what_it_should_say.value,
+      };
+
+      let info = await this.hcInfo.appWs.appInfo({
+        // TODO figure out why this works... it shouldn't, I think?
+        installed_app_id: 'test-app',
+      });
+      const cell_id = info.cell_data[0].cell_id;
+      let [eh, hh] = await this.hcInfo.appWs.callZome({
+        cap: null,
+        cell_id: cell_id,
+        zome_name: 'paperz_main_zome',
+        fn_name: 'create_annotation',
+        payload: obj,
+        provenance: cell_id[1],
+      });
+      console.log("handleCreateAnnotationSubmit:");
+      console.log(eh);
+      console.log(hh);
     }
   },
   mounted() {
