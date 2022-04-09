@@ -146,6 +146,18 @@ const App = {
         payload: null,
         provenance: cell_id[1],
       });
+
+      this.paperz.forEach(async (ele, index) => {
+        this.paperz[index].annotationz = await this.hcInfo.appWs.callZome({
+          cap: null,
+          cell_id: cell_id,
+          zome_name: 'paperz_main_zome',
+          fn_name: 'get_annotations_for_paper',
+          payload: ele[0],
+          provenance: cell_id[1],
+        });
+      });
+
       console.log("paperz:");
       console.log(this.paperz);
     },
@@ -237,6 +249,8 @@ const App = {
       console.log("handleCreateAnnotationSubmit:");
       console.log(eh);
       console.log(hh);
+
+      this.get_paperz();
     }
   },
   mounted() {

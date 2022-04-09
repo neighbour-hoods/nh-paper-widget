@@ -94,6 +94,7 @@ fn create_annotation(ann: Annotation) -> ExternResult<(EntryHash, HeaderHash)> {
     let ann_hh = create_entry(&ann)?;
     let ann_eh = hash_entry(&ann)?;
     create_link(ann_anchor()?, ann_eh.clone(), LinkTag::new(ANN_TAG))?;
+    create_link(ann.paper_ref, ann_eh.clone(), LinkTag::new(ANN_TAG))?;
 
     // TODO abstract/generalize this
     match get_sm_init(ANN_TAG.into())? {
@@ -105,6 +106,22 @@ fn create_annotation(ann: Annotation) -> ExternResult<(EntryHash, HeaderHash)> {
             Ok((ann_eh, ann_hh))
         }
     }
+}
+
+#[hdk_extern]
+fn get_annotations_for_paper(paper_eh: EntryHash) -> ExternResult<Vec<Annotation>> {
+    let mut ret = Vec::new();
+    for lnk in get_links(paper_eh, Some(LinkTag::new(ANN_TAG)))? {
+        match util::try_get_and_convert(lnk.target, GetOptions::content()) {
+            Ok(ann) => {
+                ret.push(ann);
+            }
+            Err(err) => {
+                debug!("get_annotations_for_paper: err: {}", err);
+            }
+        }
+    }
+    Ok(ret)
 }
 
 pub const SM_COMP_ANCHOR: &str = "sm_comp";
