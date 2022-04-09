@@ -92,7 +92,11 @@
         <button type="submit">submit</button>
       </form>
       <div v-for="ann in paper.annotationz" style="border: 3px solid #800080;">
-        {{ann}}
+        {{ann[1]}}
+        <form id="step_sm_annotation" @submit.prevent="handleStepSm(ann[0], $event)">
+          action: <input name="action" type="text" required /> <br>
+          <button type="submit">submit</button>
+        </form>
       </div>
       <iframe v-bind:src="`${paper[1].blob_str}`" width="100%" height="500px">
     </div>

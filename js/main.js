@@ -251,6 +251,32 @@ const App = {
       console.log(hh);
 
       this.get_paperz();
+    },
+    async handleStepSm(ann_eh, evt) {
+      console.log("handleStepSm:");
+      console.log(ann_eh);
+      console.log(evt);
+
+      let obj = {
+        target_eh: ann_eh,
+        label: "annotationz",
+        act: evt.target.elements.action.value,
+      };
+      console.log(obj);
+
+      let info = await this.hcInfo.appWs.appInfo({
+        // TODO figure out why this works... it shouldn't, I think?
+        installed_app_id: 'test-app',
+      });
+      const cell_id = info.cell_data[0].cell_id;
+      await this.hcInfo.appWs.callZome({
+        cap: null,
+        cell_id: cell_id,
+        zome_name: 'paperz_main_zome',
+        fn_name: 'step_sm',
+        payload: obj,
+        provenance: cell_id[1],
+      });
     }
   },
   mounted() {

@@ -102,19 +102,21 @@ fn create_annotation(ann: Annotation) -> ExternResult<(EntryHash, HeaderHash)> {
             "sm_init is uninitialized for annotation".to_string(),
         )),
         Some((se_eh, _se)) => {
-            create_link(ann_eh.clone(), se_eh, LinkTag::new(SM_DATA_TAG))?;
+            let sm_data_link_tag = LinkTag::new(format!("{}/{}", SM_DATA_TAG, ANN_TAG));
+            create_link(ann_eh.clone(), se_eh, sm_data_link_tag)?;
             Ok((ann_eh, ann_hh))
         }
     }
 }
 
 #[hdk_extern]
-fn get_annotations_for_paper(paper_eh: EntryHash) -> ExternResult<Vec<Annotation>> {
+fn get_annotations_for_paper(paper_eh: EntryHash) -> ExternResult<Vec<(EntryHash, Annotation)>> {
     let mut ret = Vec::new();
     for lnk in get_links(paper_eh, Some(LinkTag::new(ANN_TAG)))? {
-        match util::try_get_and_convert(lnk.target, GetOptions::content()) {
+        let ann_eh = lnk.target;
+        match util::try_get_and_convert(ann_eh.clone(), GetOptions::content()) {
             Ok(ann) => {
-                ret.push(ann);
+                ret.push((ann_eh, ann));
             }
             Err(err) => {
                 debug!("get_annotations_for_paper: err: {}", err);
