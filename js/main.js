@@ -182,7 +182,7 @@ const App = {
       this.currentStatus = STATUS_SAVING;
       console.log("handlePaperSubmit");
       console.log(evt);
-      let file = evt.target[0].files[0];
+      let file = evt.target.files[0];
       let obj = {
         filename: file.name,
         blob_str: await getBase64(file),
@@ -204,6 +204,8 @@ const App = {
       });
       console.log(hh);
       this.currentStatus = STATUS_INITIAL;
+
+      this.get_paperz();
     }
   },
   mounted() {
