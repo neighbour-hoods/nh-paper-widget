@@ -56,6 +56,15 @@
     </div>
 
     <div class="container">
+      <h3 class='subtitle'>sm_init_s</h3>
+      <p>{{sm_init_s}}</p>
+    </div>
+    <div class="container">
+      <h3 class='subtitle'>sm_comp_s</h3>
+      <p>{{sm_comp_s}}</p>
+    </div>
+
+    <div class="container">
       <!--UPLOAD-->
       <form enctype="multipart/form-data" novalidate v-if="isInitial || isSaving"  @submit.prevent="handlePaperSubmit($event);">
         <h3 class='subtitle'>upload paper</h3>
