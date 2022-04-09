@@ -211,6 +211,10 @@ const App = {
       this.currentStatus = STATUS_INITIAL;
 
       this.get_paperz();
+    },
+    async handleCreateAnnotationSubmit(paper_ref, evt) {
+      console.log(paper_ref);
+      console.log(evt);
     }
   },
   mounted() {
