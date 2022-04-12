@@ -222,7 +222,7 @@ fn step_sm(
         act,
     }: StepSmInput,
 ) -> ExternResult<()> {
-    let sm_comp_eh = match get_sm_comp(ANN_TAG.into())? {
+    let sm_comp_eh = match get_sm_comp(label.clone())? {
         Some((eh, _se)) => Ok(eh),
         None => Err(WasmError::Guest("sm_comp: invalid".into())),
     }?;
