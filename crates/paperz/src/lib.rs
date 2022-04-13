@@ -91,22 +91,23 @@ fn ann_anchor() -> ExternResult<EntryHash> {
 
 #[hdk_extern]
 fn create_annotation(ann: Annotation) -> ExternResult<(EntryHash, HeaderHash)> {
+    // TODO abstract/generalize this
+    let se_eh = match get_sm_init(ANN_TAG.into())? {
+        None => Err(WasmError::Guest(
+            "sm_init is uninitialized for annotation".to_string(),
+        )),
+        Some((se_eh, _se)) => Ok(se_eh),
+    }?;
+
     let ann_hh = create_entry(&ann)?;
     let ann_eh = hash_entry(&ann)?;
     create_link(ann_anchor()?, ann_eh.clone(), LinkTag::new(ANN_TAG))?;
     create_link(ann.paper_ref, ann_eh.clone(), LinkTag::new(ANN_TAG))?;
 
     // TODO abstract/generalize this
-    match get_sm_init(ANN_TAG.into())? {
-        None => Err(WasmError::Guest(
-            "sm_init is uninitialized for annotation".to_string(),
-        )),
-        Some((se_eh, _se)) => {
-            let sm_data_link_tag = LinkTag::new(format!("{}/{}", SM_DATA_TAG, ANN_TAG));
-            create_link(ann_eh.clone(), se_eh, sm_data_link_tag)?;
-            Ok((ann_eh, ann_hh))
-        }
-    }
+    let sm_data_link_tag = LinkTag::new(format!("{}/{}", SM_DATA_TAG, ANN_TAG));
+    create_link(ann_eh.clone(), se_eh, sm_data_link_tag)?;
+    Ok((ann_eh, ann_hh))
 }
 
 #[hdk_extern]
