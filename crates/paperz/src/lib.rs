@@ -127,6 +127,26 @@ fn get_annotations_for_paper(paper_eh: EntryHash) -> ExternResult<Vec<(EntryHash
     Ok(ret)
 }
 
+#[hdk_extern]
+fn get_sm_data_for_eh((target_eh, opt_label): (EntryHash, Option<String>)) -> ExternResult<Vec<(EntryHash, SensemakerEntry)>> {
+    let label: String = match opt_label {
+        None => "".into(),
+        Some(lab) => lab,
+    };
+    let sm_data_link_tag = LinkTag::new(format!("{}/{}", SM_DATA_TAG, label));
+    let links = get_links(
+        target_eh,
+        Some(sm_data_link_tag),
+    )?;
+    let mut ret: Vec<(EntryHash, SensemakerEntry)> = Vec::new();
+    for lnk in links {
+        let se_eh = lnk.target.clone();
+        let se = util::try_get_and_convert(se_eh.clone(), GetOptions::latest())?;
+        ret.push((se_eh, se));
+    };
+    Ok(ret)
+}
+
 pub const SM_COMP_ANCHOR: &str = "sm_comp";
 pub const SM_INIT_ANCHOR: &str = "sm_init";
 pub const SM_DATA_TAG: &str = "sm_data";
@@ -250,8 +270,15 @@ fn step_sm(
     let application_se = mk_application_se(vec![sm_comp_hh, sm_data_hh, act_se_hh])?;
     debug!("{:?}", application_se);
     let application_se_eh = hash_entry(&application_se)?;
+    debug!("{:?}", application_se_eh);
 
-    delete_link(sm_data_link.create_link_hash)?;
-    create_link(target_eh, application_se_eh, sm_data_link_tag)?;
+    {
+        let hh = delete_link(sm_data_link.create_link_hash)?;
+        debug!("delete_link hh : {:?}", hh);
+    }
+    {
+        let hh = create_link(target_eh, application_se_eh, sm_data_link_tag)?;
+        debug!("create_link hh : {:?}", hh);
+    }
     Ok(())
 }

@@ -147,8 +147,8 @@ const App = {
         provenance: cell_id[1],
       });
 
-      this.paperz.forEach(async (ele, index) => {
-        this.paperz[index].annotationz = await this.hcInfo.appWs.callZome({
+      await asyncForEach(this.paperz, async (ele, index) => {
+        let annotationz = await this.hcInfo.appWs.callZome({
           cap: null,
           cell_id: cell_id,
           zome_name: 'paperz_main_zome',
@@ -156,6 +156,23 @@ const App = {
           payload: ele[0],
           provenance: cell_id[1],
         });
+        await asyncForEach(annotationz, async (ele, index) => {
+          let ann_eh = ele[0];
+          let sm_data = await this.hcInfo.appWs.callZome({
+            cap: null,
+            cell_id: cell_id,
+            zome_name: 'paperz_main_zome',
+            fn_name: 'get_sm_data_for_eh',
+            payload: [ann_eh, null],
+            provenance: cell_id[1],
+          });
+          console.log("sm_data");
+          console.log(sm_data);
+          annotationz[index].push(sm_data);
+        });
+        console.log("annotationz");
+        console.log(annotationz);
+        this.paperz[index].annotationz = annotationz;
       });
 
       console.log("paperz:");
@@ -299,4 +316,10 @@ function getBase64(file) {
     reader.onload = () => resolve(reader.result);
     reader.onerror = error => reject(error);
   });
+}
+
+async function asyncForEach(array, callback) {
+  for (let index = 0; index < array.length; index++) {
+    await callback(array[index], index, array);
+  }
 }
