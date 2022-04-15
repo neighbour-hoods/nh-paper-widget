@@ -128,22 +128,21 @@ fn get_annotations_for_paper(paper_eh: EntryHash) -> ExternResult<Vec<(EntryHash
 }
 
 #[hdk_extern]
-fn get_sm_data_for_eh((target_eh, opt_label): (EntryHash, Option<String>)) -> ExternResult<Vec<(EntryHash, SensemakerEntry)>> {
+fn get_sm_data_for_eh(
+    (target_eh, opt_label): (EntryHash, Option<String>),
+) -> ExternResult<Vec<(EntryHash, SensemakerEntry)>> {
     let label: String = match opt_label {
         None => "".into(),
         Some(lab) => lab,
     };
     let sm_data_link_tag = LinkTag::new(format!("{}/{}", SM_DATA_TAG, label));
-    let links = get_links(
-        target_eh,
-        Some(sm_data_link_tag),
-    )?;
+    let links = get_links(target_eh, Some(sm_data_link_tag))?;
     let mut ret: Vec<(EntryHash, SensemakerEntry)> = Vec::new();
     for lnk in links {
         let se_eh = lnk.target.clone();
         let se = util::try_get_and_convert(se_eh.clone(), GetOptions::latest())?;
         ret.push((se_eh, se));
-    };
+    }
     Ok(ret)
 }
 
