@@ -7,12 +7,11 @@
     "js": "js"
   },
   "dependencies": {
-    "@holochain/conductor-api": "^0.2.3",
+    "@holochain-open-dev/cell-client": "^0.3.3",
     "vue": "^3.2.26",
     "webpack": "^5.65.0",
     "webpack-cli": "^4.9.1"
   },
-  "devDependencies": {},
   "scripts": {
     "fe:build": "webpack-cli --entry ./js/main.js --output-filename index.js --mode development",
     "fe:build-prod": "webpack-cli --entry ./js/main.js --output-filename index.js --mode production",

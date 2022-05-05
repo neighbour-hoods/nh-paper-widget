@@ -1,29 +1,17 @@
 // 🤷‍️, from \/
 // https://github.com/fengyuanchen/vue-feather/issues/8
 import { createApp } from 'vue/dist/vue.esm-bundler';
-import { AdminWebsocket, AppWebsocket, InstalledAppInfo } from '@holochain/conductor-api';
+import ZomeApi from './zomeApi';
 
 const STATUS_INITIAL = 0, STATUS_SAVING = 1, STATUS_SUCCESS = 2, STATUS_FAILED = 3;
 
 const App = {
   name: 'paperz',
   data() {
-    let hcAppPort = localStorage.getItem('hcAppPort');
-    if (hcAppPort === null) {
-      hcAppPort = 9999;
-      localStorage.setItem('hcAppPort', hcAppPort);
-    }
-    let hcAdminPort = localStorage.getItem('hcAdminPort');
-    if (hcAdminPort === null) {
-      hcAdminPort = 9000;
-      localStorage.setItem('hcAdminPort', hcAdminPort);
-    }
     return {
-      hcAppPort,
-      hcAdminPort,
+      zomeApi,
       uploadError: null,
       currentStatus: null,
-      hcInfo: null,
       paperz: [],
       annotationz: [],
       sm_submit: {
@@ -57,20 +45,10 @@ const App = {
     }
   },
   async created () {
-    let appWs = await AppWebsocket.connect('ws://localhost:' + this.hcAppPort.toString());
-    let adminWs = await AdminWebsocket.connect('ws://localhost:' + this.hcAdminPort.toString());
-    let agentPk = await adminWs.generateAgentPubKey();
-    let hcInfo = {
-        adminWs: adminWs,
-        appWs: appWs,
-        agentPk: agentPk,
-    };
-    this.hcInfo = hcInfo;
-    console.log("hcInfo:");
-    console.log(hcInfo);
+    let client = await setupClient();
+    this.zomeApi = new ZomeApi(client);
 
     this.get_sm_init_and_comp_s();
-
     this.get_paperz();
   },
   computed: {
@@ -101,71 +79,31 @@ const App = {
     async get_sm_init_and_comp_s() {
       const labels = ["annotationz"];
 
-      let info = await this.hcInfo.appWs.appInfo({
-        // TODO figure out why this works... it shouldn't, I think?
-        installed_app_id: 'test-app',
-      });
-      const cell_id = info.cell_data[0].cell_id;
-
       for (var i = 0; i < labels.length; i++) {
         let label = labels[i];
-
-        this.sm_init_s[label] = await this.hcInfo.appWs.callZome({
-          cap: null,
-          cell_id: cell_id,
-          zome_name: 'paperz_main_zome',
-          fn_name: 'get_sm_init',
-          payload: label,
-          provenance: cell_id[1],
-        });
-        this.sm_comp_s[label] = await this.hcInfo.appWs.callZome({
-          cap: null,
-          cell_id: cell_id,
-          zome_name: 'paperz_main_zome',
-          fn_name: 'get_sm_comp',
-          payload: label,
-          provenance: cell_id[1],
-        });
+        this.sm_init_s[label] = await this.zomeApi.get_sm_init(label);
+        this.sm_comp_s[label] = await this.zomeApi.get_sm_comp(label);
       }
+
       console.log("sm_init_s:");
       console.log(this.sm_init_s);
       console.log("sm_comp_s:");
       console.log(this.sm_comp_s);
     },
     async get_paperz() {
-      let info = await this.hcInfo.appWs.appInfo({
-        // TODO figure out why this works... it shouldn't, I think?
-        installed_app_id: 'test-app',
-      });
-      const cell_id = info.cell_data[0].cell_id;
-      this.paperz = await this.hcInfo.appWs.callZome({
-        cap: null,
-        cell_id: cell_id,
-        zome_name: 'paperz_main_zome',
-        fn_name: 'get_all_papers',
-        payload: null,
-        provenance: cell_id[1],
-      });
-
+      this.paperz = await this.zomeApi.get_all_papers();
+      
+      // I think we can turn this into a tree structure using Path on the backend
+      // Will be a bit of legwork to get going but would remove the need for looped callback
+      // patterns like below.
+      // How often will context-resource-sensemaker data be representable by a tree?
       await asyncForEach(this.paperz, async (ele, index) => {
-        let annotationz = await this.hcInfo.appWs.callZome({
-          cap: null,
-          cell_id: cell_id,
-          zome_name: 'paperz_main_zome',
-          fn_name: 'get_annotations_for_paper',
-          payload: ele[0],
-          provenance: cell_id[1],
-        });
+        // for each paper, get annotations for paper
+        let annotationz = await this.zomeApi.get_annotations_for_paper(ele);
+
+        // for each annotation get all sensemaker data
         await asyncForEach(annotationz, async (ele, index) => {
-          let ann_eh = ele[0];
-          let sm_data = await this.hcInfo.appWs.callZome({
-            cap: null,
-            cell_id: cell_id,
-            zome_name: 'paperz_main_zome',
-            fn_name: 'get_sm_data_for_eh',
-            payload: [ann_eh, null],
-            provenance: cell_id[1],
-          });
+          let sm_data = await this.zomeApi.get_sm_data_for_eh([ele[0], null]);
           console.log("sm_data");
           console.log(sm_data);
           annotationz[index].push(sm_data);
@@ -178,37 +116,17 @@ const App = {
       console.log("paperz:");
       console.log(this.paperz);
     },
+    // initialize sense maker state machine to
     async set_sm_init() {
-      let info = await this.hcInfo.appWs.appInfo({
-        // TODO figure out why this works... it shouldn't, I think?
-        installed_app_id: 'test-app',
-      });
-      const cell_id = info.cell_data[0].cell_id;
-      let res = await this.hcInfo.appWs.callZome({
-        cap: null,
-        cell_id: cell_id,
-        zome_name: 'paperz_main_zome',
-        fn_name: 'set_sm_init_se_eh',
-        payload: [this.sm_submit.sm_init.label, this.sm_submit.sm_init.expr_str],
-        provenance: cell_id[1],
-      });
+      let payload = [this.sm_submit.sm_init.label, this.sm_submit.sm_init.expr_str];
+      let res = await this.zomeApi.set_sm_init_se_eh(payload) 
       console.log(res);
       this.get_sm_init_and_comp_s();
     },
     async set_sm_comp() {
-      let info = await this.hcInfo.appWs.appInfo({
-        // TODO figure out why this works... it shouldn't, I think?
-        installed_app_id: 'test-app',
-      });
-      const cell_id = info.cell_data[0].cell_id;
-      let res = await this.hcInfo.appWs.callZome({
-        cap: null,
-        cell_id: cell_id,
-        zome_name: 'paperz_main_zome',
-        fn_name: 'set_sm_comp_se_eh',
-        payload: [this.sm_submit.sm_comp.label, this.sm_submit.sm_comp.expr_str],
-        provenance: cell_id[1],
-      });
+      let payload = [this.sm_submit.sm_comp.label, this.sm_submit.sm_comp.expr_str];
+      let res = await this.zomeApi.set_sm_comp_se_eh(payload);
+
       console.log(res);
       this.get_sm_init_and_comp_s();
     },
@@ -223,19 +141,7 @@ const App = {
       };
       console.log(obj);
 
-      let info = await this.hcInfo.appWs.appInfo({
-        // TODO figure out why this works... it shouldn't, I think?
-        installed_app_id: 'test-app',
-      });
-      const cell_id = info.cell_data[0].cell_id;
-      let hh = await this.hcInfo.appWs.callZome({
-        cap: null,
-        cell_id: cell_id,
-        zome_name: 'paperz_main_zome',
-        fn_name: 'upload_paper',
-        payload: obj,
-        provenance: cell_id[1],
-      });
+      let hh = await this.zomeApi.upload_paper(obj);
       console.log(hh);
       this.currentStatus = STATUS_INITIAL;
 
@@ -250,19 +156,7 @@ const App = {
         what_it_should_say: evt.target.elements.what_it_should_say.value,
       };
 
-      let info = await this.hcInfo.appWs.appInfo({
-        // TODO figure out why this works... it shouldn't, I think?
-        installed_app_id: 'test-app',
-      });
-      const cell_id = info.cell_data[0].cell_id;
-      let [eh, hh] = await this.hcInfo.appWs.callZome({
-        cap: null,
-        cell_id: cell_id,
-        zome_name: 'paperz_main_zome',
-        fn_name: 'create_annotation',
-        payload: obj,
-        provenance: cell_id[1],
-      });
+      let [eh, hh] = await this.zomeApi.create_annotation(obj);
       console.log("handleCreateAnnotationSubmit:");
       console.log(eh);
       console.log(hh);
@@ -281,19 +175,7 @@ const App = {
       };
       console.log(obj);
 
-      let info = await this.hcInfo.appWs.appInfo({
-        // TODO figure out why this works... it shouldn't, I think?
-        installed_app_id: 'test-app',
-      });
-      const cell_id = info.cell_data[0].cell_id;
-      await this.hcInfo.appWs.callZome({
-        cap: null,
-        cell_id: cell_id,
-        zome_name: 'paperz_main_zome',
-        fn_name: 'step_sm',
-        payload: obj,
-        provenance: cell_id[1],
-      });
+      await this.zomeApi.stem_sm(obj);
     }
   },
   mounted() {
