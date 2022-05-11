@@ -13,12 +13,16 @@
     "webpack-cli": "^4.9.1"
   },
   "scripts": {
-    "fe:build": "webpack-cli --entry ./js/main.js --output-filename index.js --mode development",
+    "start": "miniserve .",
+    "fe:build": "webpack-cli --config webpack.config.js",
+    "go": "npm run fe:build && npm run start",
     "fe:build-prod": "webpack-cli --entry ./js/main.js --output-filename index.js --mode production",
     "hc:clean": "rm -rf .hc*",
     "hc:build": "cargo build -p paperz --release --target wasm32-unknown-unknown && cp $CARGO_TARGET_DIR/wasm32-unknown-unknown/release/paperz.wasm ./happs/paperz",
     "hc:pack": "hc dna pack happs/paperz && hc app pack happs/paperz",
-    "hc:run": "rm -rf .hc* && hc sandbox generate happs/paperz && hc sandbox -f=9000 run -l -p 9999"
+    "hc:run": "rm -rf .hc* && hc sandbox generate happs/paperz && hc sandbox -f=9000 run -l -p 9999",
+    "hc:redo": "npm run hc:build && npm run hc:pack && npm run hc:run",
+    "hc:pg": "npx @holochain-playground/cli ws://localhost:9000"
   },
   "author": "",
   "license": "MIT"
