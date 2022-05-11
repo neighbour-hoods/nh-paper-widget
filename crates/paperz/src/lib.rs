@@ -1,25 +1,14 @@
 use hdk::prelude::*;
 
-// create_sensemaker_entry_full, get_sensemaker_entry,
-// get_sensemaker_entry_by_headerhash, pack_ses_into_list_se,
-// CreateSensemakerEntryInput, CreateSensemakerEntryInputParse, SchemeEntry,
-use common::{
-    create_sensemaker_entry_parse, mk_application_se, CreateSensemakerEntryInputParse,
-    SensemakerEntry,
-};
-// use rep_lang_core::{
-//     abstract_syntax::{Expr, Lit, PrimOp},
-//     app, error,
-// };
-// use rep_lang_runtime::{
-//     eval::{FlatValue, Value},
-//     infer::{normalize, unifies, InferState},
-//     types::{type_arr, type_int, type_list, type_pair, Scheme},
-// };
+use common::SensemakerEntry;
 
 mod util;
 
 pub const PAPER_TAG: &str = "paperz_paper";
+pub const ANN_TAG: &str = "annotationz";
+pub const SM_COMP_PATH: &str = "sm_comp.paperz";
+pub const SM_INIT_PATH: &str = "sm_init.paperz";
+pub const SM_DATA_PATH: &str = "sm_data.paperz";
 
 entry_defs![
     Path::entry_def(),
@@ -33,6 +22,7 @@ pub struct Paper {
     // must include extension
     pub filename: String,
     // encoded file bytes payload
+    // getting an error here on get_paperz. Deserialize("invalid type: byte array, expected u8")
     pub blob_str: String,
 }
 
@@ -65,6 +55,7 @@ fn upload_paper(paper: Paper) -> ExternResult<HeaderHash> {
 
 #[hdk_extern]
 fn get_all_papers(_: ()) -> ExternResult<Vec<(EntryHash, Paper)>> {
+    debug!("Getting all paperz...");
     let paper_entry_links = get_links(paper_anchor()?, Some(LinkTag::new(PAPER_TAG)))?;
     let mut paperz: Vec<(EntryHash, Paper)> = Vec::new();
     for lnk in paper_entry_links {
@@ -83,146 +74,142 @@ fn get_all_papers(_: ()) -> ExternResult<Vec<(EntryHash, Paper)>> {
     Ok(paperz)
 }
 
-pub const ANN_TAG: &str = "annotationz";
-
 fn ann_anchor() -> ExternResult<EntryHash> {
     anchor(ANN_TAG.into(), "".into())
 }
 
 #[hdk_extern]
-fn create_annotation(ann: Annotation) -> ExternResult<(EntryHash, HeaderHash)> {
-    // TODO abstract/generalize this
-    let se_eh = match get_sm_init(ANN_TAG.into())? {
-        None => Err(WasmError::Guest(
-            "sm_init is uninitialized for annotation".to_string(),
-        )),
-        Some((se_eh, _se)) => Ok(se_eh),
-    }?;
+fn create_annotation(annotation: Annotation) -> ExternResult<(EntryHash, HeaderHash)> {
 
-    let ann_hh = create_entry(&ann)?;
-    let ann_eh = hash_entry(&ann)?;
-    create_link(ann_anchor()?, ann_eh.clone(), LinkTag::new(ANN_TAG))?;
-    create_link(ann.paper_ref, ann_eh.clone(), LinkTag::new(ANN_TAG))?;
+  let annotation_headerhash = create_entry(&annotation)?;
+  let annotation_entryhash = hash_entry(&annotation)?;
+  create_link(ann_anchor()?, annotation_entryhash.clone(), LinkTag::new(ANN_TAG))?;
+  create_link(annotation.paper_ref, annotation_entryhash.clone(), LinkTag::new(ANN_TAG))?;
 
-    // TODO abstract/generalize this
-    let sm_data_link_tag = LinkTag::new(format!("{}/{}", SM_DATA_TAG, ANN_TAG));
-    create_link(ann_eh.clone(), se_eh, sm_data_link_tag)?;
-    Ok((ann_eh, ann_hh))
+  // this is a write interface between a widget and the sensemaker hub
+  call(
+    None, // todo: get hub cell
+    "hub".into(), 
+        "link_to_sensemaker_entry".into(), 
+  None, 
+  annotation_entryhash.clone())?;
+
+  Ok((annotation_entryhash, annotation_headerhash))
 }
 
+
 #[hdk_extern]
-fn get_annotations_for_paper(paper_eh: EntryHash) -> ExternResult<Vec<(EntryHash, Annotation)>> {
-    let mut ret = Vec::new();
-    for lnk in get_links(paper_eh, Some(LinkTag::new(ANN_TAG)))? {
-        let ann_eh = lnk.target;
-        match util::try_get_and_convert(ann_eh.clone(), GetOptions::content()) {
-            Ok(ann) => {
-                ret.push((ann_eh, ann));
+fn get_annotations_for_paper(paper_entry_hash: EntryHash) -> ExternResult<Vec<(EntryHash, Annotation)>> {
+    debug!("Getting annotations");
+    let mut annotations: Vec<(EntryHash, Annotation)> = Vec::new();
+    debug!("Created empty vector");
+    for link in get_links(paper_entry_hash, Some(LinkTag::new(ANN_TAG)))? {
+        debug!("Here is a links: {:?}", link);
+        let annotation_entry_hash = link.target;
+        match util::try_get_and_convert(
+            annotation_entry_hash.clone(), 
+ GetOptions::content()) 
+        {
+            Ok(annotation) => {
+                debug!("Annotation: {:?}", annotation);
+                annotations.push((annotation_entry_hash, annotation));
             }
             Err(err) => {
-                debug!("get_annotations_for_paper: err: {}", err);
+                error!("get_annotations_for_paper: err: {}", err);
             }
         }
     }
-    Ok(ret)
+    Ok(annotations)
 }
 
+/**
+* Start of bridge calls from widget to hub
+*/
 #[hdk_extern]
-fn get_sm_data_for_eh(
+fn get_state_machine_data(
     (target_eh, opt_label): (EntryHash, Option<String>),
 ) -> ExternResult<Vec<(EntryHash, SensemakerEntry)>> {
-    let label: String = match opt_label {
-        None => "".into(),
-        Some(lab) => lab,
-    };
-    let sm_data_link_tag = LinkTag::new(format!("{}/{}", SM_DATA_TAG, label));
-    let links = get_links(target_eh, Some(sm_data_link_tag))?;
-    let mut ret: Vec<(EntryHash, SensemakerEntry)> = Vec::new();
-    for lnk in links {
-        let se_eh = lnk.target.clone();
-        let se = util::try_get_and_convert(se_eh.clone(), GetOptions::latest())?;
-        ret.push((se_eh, se));
-    }
-    Ok(ret)
-}
-
-pub const SM_COMP_ANCHOR: &str = "sm_comp";
-pub const SM_INIT_ANCHOR: &str = "sm_init";
-pub const SM_DATA_TAG: &str = "sm_data";
-
-#[hdk_extern]
-fn get_sm_init(label: String) -> ExternResult<Option<(EntryHash, SensemakerEntry)>> {
-    get_sm_se_eh(SM_INIT_ANCHOR.into(), label)
-}
-
-#[hdk_extern]
-fn get_sm_comp(label: String) -> ExternResult<Option<(EntryHash, SensemakerEntry)>> {
-    get_sm_se_eh(SM_COMP_ANCHOR.into(), label)
-}
-
-fn get_sm_se_eh(
-    anchor_type: String,
-    anchor_text: String,
-) -> ExternResult<Option<(EntryHash, SensemakerEntry)>> {
-    let opt_eh = get_single_linked_entry(anchor_type, anchor_text)?;
-    match opt_eh {
-        Some(eh) => {
-            let se = util::try_get_and_convert(eh.clone(), GetOptions::content())?;
-            Ok(Some((eh, se)))
+    
+    match call(    
+        None, // todo: get hub cell
+        "hub".into(), 
+        "get_state_machine_data".into(), 
+        None, 
+        (target_eh, opt_label))? {
+            ZomeCallResponse::Ok(data) => {
+                return Ok(data.decode()?);
+            },
+            _ => todo!(),
         }
-        None => Ok(None),
-    }
 }
 
-fn get_single_linked_entry(
-    anchor_type: String,
-    anchor_text: String,
-) -> ExternResult<Option<EntryHash>> {
-    let links = get_links(
-        anchor(anchor_type.clone(), anchor_text)?,
-        Some(LinkTag::new(anchor_type)),
-    )?;
-    match &links[..] {
-        [link] => Ok(Some(link.target.clone())),
-        _ => Ok(None),
-    }
+#[hdk_extern]
+fn get_state_machine_init(_:()) -> ExternResult<Option<(EntryHash, SensemakerEntry)>> {
+    get_state_machine(SM_INIT_PATH.into())
+}
+
+#[hdk_extern]
+fn get_state_machine_comp(_:()) -> ExternResult<Option<(EntryHash, SensemakerEntry)>> {
+    get_state_machine(SM_COMP_PATH.into())
+}
+
+fn get_state_machine(
+    path: String,
+) -> ExternResult<Option<(EntryHash, SensemakerEntry)>> {
+    match call(    
+        None, // todo: get hub cell
+        "hub".into(), 
+        "get_state_machine".into(), 
+        None, 
+        path)? {
+            ZomeCallResponse::Ok(data) => {
+                return Ok(data.decode()?);
+            },
+            _ => todo!(),
+        }
+}
+
+// generic
+#[allow(dead_code)]
+fn get_sensemaker_entry(
+    path: String,
+) -> ExternResult<Option<(EntryHash, SensemakerEntry)>> {
+    match call(    
+        None, // todo: get hub cell
+        "hub".into(), 
+        "get_sensemaker_entry".into(), 
+        None, 
+        path)? {
+            ZomeCallResponse::Ok(data) => {
+                return Ok(data.decode()?);
+            },
+            _ => todo!(),
+        }
 }
 
 #[hdk_extern]
 /// set the sm_init state for the label to the `rep_lang` interpretation of `expr_str`
-pub fn set_sm_init_se_eh((label, expr_str): (String, String)) -> ExternResult<bool> {
-    set_sm_se_eh(SM_INIT_ANCHOR.into(), label, expr_str)
+pub fn set_state_machine_init(expr_str: String) -> ExternResult<bool> {
+    set_state_machine(SM_INIT_PATH.into(), expr_str)
 }
 
 #[hdk_extern]
 /// set the sm_comp state for the label to the `rep_lang` interpretation of `expr_str`
-pub fn set_sm_comp_se_eh((label, expr_str): (String, String)) -> ExternResult<bool> {
-    set_sm_se_eh(SM_COMP_ANCHOR.into(), label, expr_str)
+pub fn set_state_machine_comp(expr_str: String) -> ExternResult<bool> {
+    set_state_machine(SM_COMP_PATH.into(), expr_str)
 }
 
-fn set_sm_se_eh(anchor_type: String, anchor_text: String, expr_str: String) -> ExternResult<bool> {
-    let (_se_hh, se) = create_sensemaker_entry_parse(CreateSensemakerEntryInputParse {
-        expr: expr_str,
-        args: vec![],
-    })?;
-    let se_eh = hash_entry(se)?;
-    set_entry_link(anchor_type, anchor_text, se_eh)
-}
-
-/// updates the link from the anchor to point to `eh`. will remove any existing links.
-/// returns true if there were links which were "overwritten".
-fn set_entry_link(anchor_type: String, anchor_text: String, eh: EntryHash) -> ExternResult<bool> {
-    let anchor = anchor(anchor_type.clone(), anchor_text)?;
-    let link_tag = LinkTag::new(anchor_type);
-    let links = get_links(anchor.clone(), Some(link_tag.clone()))?;
-    let did_overwrite = !links.is_empty();
-    for link in links {
-        delete_link(link.create_link_hash)?;
+fn set_state_machine(path: String, expr_str: String) -> ExternResult<bool> {
+    match call(    
+        None, // todo: get hub cell
+        "hub".into(), 
+        "set_state_machine".into(), 
+        None, 
+        (path, expr_str))? {
+            ZomeCallResponse::Ok(_) => return Ok(true),
+            _ => todo!(),
     }
-    create_link(anchor, eh, link_tag)?;
-    Ok(did_overwrite)
 }
-
 #[derive(Debug, Serialize, Deserialize, SerializedBytes)]
 pub struct StepSmInput {
     target_eh: EntryHash,
@@ -235,49 +222,14 @@ pub struct StepSmInput {
 /// both the state entry, and the action. update the link off of `target_eh` s.t. it points to the
 /// new state. this accomplishes "stepping" of the state machine.
 #[hdk_extern]
-fn step_sm(
-    StepSmInput {
-        target_eh,
-        label,
-        act,
-    }: StepSmInput,
-) -> ExternResult<()> {
-    let sm_comp_eh = match get_sm_comp(label.clone())? {
-        Some((eh, _se)) => Ok(eh),
-        None => Err(WasmError::Guest("sm_comp: invalid".into())),
-    }?;
-    let sm_data_link_tag = LinkTag::new(format!("{}/{}", SM_DATA_TAG, label));
-    let sm_data_link = {
-        let links = get_links(target_eh.clone(), Some(sm_data_link_tag.clone()))?;
-        match &links[..] {
-            [link] => Ok(link.clone()),
-            _ => Err(WasmError::Guest(format!(
-                "step_sm: multiple sm_data/{} links exist. there should only be one.",
-                label
-            ))),
+fn step_sm(step_sm_input: StepSmInput)-> ExternResult<()> {
+    match call(    
+        None, // todo: get hub cell
+        "hub".into(), 
+        "step_sm".into(),
+        None, 
+        step_sm_input)? {
+            ZomeCallResponse::Ok(_) => return Ok(()),
+            _ => todo!(),
         }
-    }?;
-    let sm_data_eh = sm_data_link.target;
-    let sm_comp_hh = util::get_hh(sm_comp_eh, GetOptions::content())?;
-    let sm_data_hh = util::get_hh(sm_data_eh, GetOptions::content())?;
-
-    let (act_se_hh, _act_se) = create_sensemaker_entry_parse(CreateSensemakerEntryInputParse {
-        expr: act,
-        args: vec![],
-    })?;
-
-    let application_se = mk_application_se(vec![sm_comp_hh, sm_data_hh, act_se_hh])?;
-    debug!("{:?}", application_se);
-    let application_se_eh = hash_entry(&application_se)?;
-    debug!("{:?}", application_se_eh);
-
-    {
-        let hh = delete_link(sm_data_link.create_link_hash)?;
-        debug!("delete_link hh : {:?}", hh);
-    }
-    {
-        let hh = create_link(target_eh, application_se_eh, sm_data_link_tag)?;
-        debug!("create_link hh : {:?}", hh);
-    }
-    Ok(())
 }
