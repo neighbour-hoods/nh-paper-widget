@@ -15,21 +15,31 @@ entry_defs![
     SensemakerEntry::entry_def()
 ];
 
-// do links even exist here anymore if the annotation holds on to the path?
-#[hdk_extern]
-fn link_to_sensemaker_entry(data_entry_hash: EntryHash, path: String) -> ExternResult<()> {
+// // do links even exist here anymore if the annotation holds on to the path?
+// #[hdk_extern]
+// fn link_to_sensemaker_entry(data_entry_hash: EntryHash, path: String) -> ExternResult<()> {
 
-  let sensemaker_entryhash = match get_sensemaker_entry(path.into())? {
-      None => Err(WasmError::Guest(
-          "sm_init is uninitialized for annotation".to_string(),
-      )),
-      Some((sensemaker_entryhash, _)) => Ok(sensemaker_entryhash),
-  }?;
+//   let sensemaker_entryhash = match get_sensemaker_entry(path.into())? {
+//       None => Err(WasmError::Guest(
+//           "sm_init is uninitialized for annotation".to_string(),
+//       )),
+//       Some((sensemaker_entryhash, _)) => Ok(sensemaker_entryhash),
+//   }?;
 
 
-  let sm_data_link_tag = LinkTag::new(format!("{}/{}", SM_DATA_TAG, ANN_TAG));
-  create_link(data_entry_hash.clone(), sensemaker_entryhash, sm_data_link_tag)?;
-  Ok(())
+//   let sm_data_link_tag = LinkTag::new(format!("{}/{}", SM_DATA_TAG, ANN_TAG));
+//   create_link(data_entry_hash.clone(), sensemaker_entryhash, sm_data_link_tag)?;
+//   Ok(())
+// }
+
+#[hdk_entry]
+fn initialize_sm_data(path_string: String, link_tag_string: String) -> ExternResult(()) {
+    // get current sm_init
+    
+    // create sm_data at sm_init value
+
+    // link to end of given path with given link tag
+
 }
 
 #[hdk_extern]
@@ -52,9 +62,8 @@ fn get_state_machine_data(
 }
 
 #[hdk_extern]
-fn get_sensemaker_entry(path_string: String)-> ExternResult<Option<(EntryHash, SensemakerEntry)>> {
-    let opt_entryhash = get_single_linked_entry(path)?;
-    match opt_entryhash {
+fn get_sensemaker_entry(path_string: String, link_tag_string: String)-> ExternResult<Option<(EntryHash, SensemakerEntry)>> {
+    match get_single_linked_entry(path_string, link_tag_string)? {
         Some(entryhash) => {
             let sensemaker_entry = util::try_get_and_convert(entryhash.clone(), GetOptions::content())?;
             Ok(Some((entryhash, sensemaker_entry)))
@@ -63,46 +72,56 @@ fn get_sensemaker_entry(path_string: String)-> ExternResult<Option<(EntryHash, S
     }
 }
 
-fn get_single_linked_entry(path_string: String) -> ExternResult<Option<EntryHash>> {
-  // TODO get links from PATH
-   let path = Path::try_from(path_string.clone())?;
-   path.ensure()?;
-   let anchor_hash = path.path_entry_hash()?;
+fn get_single_linked_entry(path_string: String, link_tag_string: String) -> ExternResult<Option<EntryHash>> {
 
-    let links = get_links(
-        anchor(anchor_type.clone(), anchor_text)?,
-        Some(LinkTag::new(anchor_type)),
-    )?;
-    match &links[..] {
-        [link] => Ok(Some(link.target.clone())),
-        _ => Ok(None),
+    let path = Path::from(path_string)?;
+    let links = get_links(path.path_entry_hash()?, Some(link_tag_string))?;
+    match links.into_iter().max_by(|x, y| x.timestamp.cmp(&y.timestamp)) {
+        None => Ok(None),
+        Some(link) => Ok(Some(link.target))
     }
-}
+} 
+
 
 #[hdk_extern]
-fn set_sensemaker_entry(path: String, expr_str: String) -> ExternResult<bool> {
+fn set_sensemaker_entry(
+    path_string: String, 
+    link_tag_string: String, 
+    expr_str: String) -> ExternResult<()> {
     let (_, sensemaker_entry) = create_sensemaker_entry_parse(CreateSensemakerEntryInputParse {
         expr: expr_str,
         args: vec![],
     })?;
     let sensemaker_entryhash = hash_entry(sensemaker_entry)?;
-    set_entry_link(path, sensemaker_entryhash)
+
+    let path = Path::try_from(path_string.clone())?;
+    path.ensure()?;
+    let anchor_hash = path.path_entry_hash()?;
+    create_link(anchor_hash, sensemaker_entryhash.clone(), LinkTag::new(link_tag_string))?;
+    Ok(())
 }
+
+//   // TODO get links from PATH
+//   let path = Path::try_from(path_string.clone())?;
+//   path.ensure()?;
+
+
+
 
 /// updates the link from the anchor to point to `entryhash`. will remove any existing links.
 /// returns true if there were links which were "overwritten".
-fn set_entry_link(path: String, entryhash: EntryHash) -> ExternResult<bool> {
-    // TODO convert anchor to PATH
-    let anchor = anchor(anchor_type.clone(), anchor_text)?;
-    let link_tag = LinkTag::new(anchor_type);
-    let links = get_links(anchor.clone(), Some(link_tag.clone()))?;
-    let did_overwrite = !links.is_empty();
-    for link in links {
-        delete_link(link.create_link_hash)?;
-    }
-    create_link(anchor, eh, link_tag)?;
-    Ok(did_overwrite)
-}
+// fn set_entry_link(path: String, entryhash: EntryHash) -> ExternResult<bool> {
+//     // TODO convert anchor to PATH
+//     let anchor = anchor(anchor_type.clone(), anchor_text)?;
+//     let link_tag = LinkTag::new(anchor_type);
+//     let links = get_links(anchor.clone(), Some(link_tag.clone()))?;
+//     let did_overwrite = !links.is_empty();
+//     for link in links {
+//         delete_link(link.create_link_hash)?;
+//     }
+//     create_link(anchor, eh, link_tag)?;
+//     Ok(did_overwrite)
+// }
 
 #[derive(Debug, Serialize, Deserialize, SerializedBytes)]
 pub struct StepSmInput {

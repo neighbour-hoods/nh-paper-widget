@@ -6,9 +6,12 @@ mod util;
 
 pub const PAPER_TAG: &str = "paperz_paper";
 pub const ANN_TAG: &str = "annotationz";
-pub const SM_COMP_PATH: &str = "root.sm_comp.paperz";
-pub const SM_INIT_PATH: &str = "root.sm_init.paperz";
-pub const SM_DATA_PATH: &str = "root.sm_data.paperz";
+
+pub const PAPER_PATH: &str = "widget.paperz"; //.${entry_hash} => "sm_data"
+
+pub const SM_COMP_PATH: &str = "sensemaker.sm_comp";
+pub const SM_INIT_PATH: &str = "sensemaker.sm_init";
+pub const SM_DATA_PATH: &str = "sensemaker.sm_data";
 
 entry_defs![
     Path::entry_def(),
@@ -28,12 +31,12 @@ pub struct Paper {
 
 #[hdk_entry]
 pub struct Annotation {
-    pub paper_ref: EntryHash, // should this be a HeaderHash?
+    pub paper_ref: EntryHash, // should this be a HeaderHash? probably
     pub page_num: u64,
     pub paragraph_num: u64,
     pub what_it_says: String,
     pub what_it_should_say: String,
-    pub sensemaker_path: String, // root.paperz.sm_init   the widget data is responsible for knowing where on the hub path it's sensemaker data is
+
 }
 
 fn paper_anchor() -> ExternResult<EntryHash> {
@@ -115,7 +118,7 @@ fn create_annotation(annotation: Annotation) -> ExternResult<(EntryHash, HeaderH
   call(
     None, // todo: get hub cell
     "hub".into(), 
-        "link_to_sensemaker_entry".into(), 
+        "create_sensemaker_entry".into(), 
   None, 
   annotation_entryhash.clone())?;
 
@@ -143,16 +146,6 @@ fn get_state_machine_data(
         }
 }
 
-#[hdk_extern]
-fn get_state_machine_init(_:()) -> ExternResult<Option<(EntryHash, SensemakerEntry)>> {
-    get_sensemaker_entry(SM_INIT_PATH.into())
-}
-
-#[hdk_extern]
-fn get_state_machine_comp(_:()) -> ExternResult<Option<(EntryHash, SensemakerEntry)>> {
-    get_sensemaker_entry(SM_COMP_PATH.into())
-}
-
 // generic
 fn get_sensemaker_entry(
     path: String,
@@ -162,7 +155,7 @@ fn get_sensemaker_entry(
         "hub".into(), 
         "get_sensemaker_entry".into(), 
         None, 
-        path)? {
+        (path, link_tag)? {
             ZomeCallResponse::Ok(data) => {
                 return Ok(data.decode()?);
             },
