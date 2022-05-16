@@ -6,9 +6,9 @@ mod util;
 
 pub const PAPER_TAG: &str = "paperz_paper";
 pub const ANN_TAG: &str = "annotationz";
-pub const SM_COMP_PATH: &str = "sm_comp.paperz";
-pub const SM_INIT_PATH: &str = "sm_init.paperz";
-pub const SM_DATA_PATH: &str = "sm_data.paperz";
+pub const SM_COMP_PATH: &str = "root.sm_comp.paperz";
+pub const SM_INIT_PATH: &str = "root.sm_init.paperz";
+pub const SM_DATA_PATH: &str = "root.sm_data.paperz";
 
 entry_defs![
     Path::entry_def(),
@@ -33,6 +33,7 @@ pub struct Annotation {
     pub paragraph_num: u64,
     pub what_it_says: String,
     pub what_it_should_say: String,
+    pub sensemaker_path: String, // root.paperz.sm_init   the widget data is responsible for knowing where on the hub path it's sensemaker data is
 }
 
 fn paper_anchor() -> ExternResult<EntryHash> {
@@ -74,29 +75,9 @@ fn get_all_papers(_: ()) -> ExternResult<Vec<(EntryHash, Paper)>> {
     Ok(paperz)
 }
 
-fn ann_anchor() -> ExternResult<EntryHash> {
+fn annotation_anchor() -> ExternResult<EntryHash> {
     anchor(ANN_TAG.into(), "".into())
 }
-
-#[hdk_extern]
-fn create_annotation(annotation: Annotation) -> ExternResult<(EntryHash, HeaderHash)> {
-
-  let annotation_headerhash = create_entry(&annotation)?;
-  let annotation_entryhash = hash_entry(&annotation)?;
-  create_link(ann_anchor()?, annotation_entryhash.clone(), LinkTag::new(ANN_TAG))?;
-  create_link(annotation.paper_ref, annotation_entryhash.clone(), LinkTag::new(ANN_TAG))?;
-
-  // this is a write interface between a widget and the sensemaker hub
-  call(
-    None, // todo: get hub cell
-    "hub".into(), 
-        "link_to_sensemaker_entry".into(), 
-  None, 
-  annotation_entryhash.clone())?;
-
-  Ok((annotation_entryhash, annotation_headerhash))
-}
-
 
 #[hdk_extern]
 fn get_annotations_for_paper(paper_entry_hash: EntryHash) -> ExternResult<Vec<(EntryHash, Annotation)>> {
@@ -122,8 +103,27 @@ fn get_annotations_for_paper(paper_entry_hash: EntryHash) -> ExternResult<Vec<(E
     Ok(annotations)
 }
 
+#[hdk_extern]
+fn create_annotation(annotation: Annotation) -> ExternResult<(EntryHash, HeaderHash)> {
+
+  let annotation_headerhash = create_entry(&annotation)?;
+  let annotation_entryhash = hash_entry(&annotation)?;
+  create_link(annotation_anchor()?, annotation_entryhash.clone(), LinkTag::new(ANN_TAG))?;
+  create_link(annotation.paper_ref, annotation_entryhash.clone(), LinkTag::new(ANN_TAG))?;
+
+  // this is a write interface between a widget and the sensemaker hub
+  call(
+    None, // todo: get hub cell
+    "hub".into(), 
+        "link_to_sensemaker_entry".into(), 
+  None, 
+  annotation_entryhash.clone())?;
+
+  Ok((annotation_entryhash, annotation_headerhash))
+}
+
 /**
-* Start of bridge calls from widget to hub
+* What is a Vec of (EH, SE) tuples?
 */
 #[hdk_extern]
 fn get_state_machine_data(
@@ -145,32 +145,15 @@ fn get_state_machine_data(
 
 #[hdk_extern]
 fn get_state_machine_init(_:()) -> ExternResult<Option<(EntryHash, SensemakerEntry)>> {
-    get_state_machine(SM_INIT_PATH.into())
+    get_sensemaker_entry(SM_INIT_PATH.into())
 }
 
 #[hdk_extern]
 fn get_state_machine_comp(_:()) -> ExternResult<Option<(EntryHash, SensemakerEntry)>> {
-    get_state_machine(SM_COMP_PATH.into())
-}
-
-fn get_state_machine(
-    path: String,
-) -> ExternResult<Option<(EntryHash, SensemakerEntry)>> {
-    match call(    
-        None, // todo: get hub cell
-        "hub".into(), 
-        "get_state_machine".into(), 
-        None, 
-        path)? {
-            ZomeCallResponse::Ok(data) => {
-                return Ok(data.decode()?);
-            },
-            _ => todo!(),
-        }
+    get_sensemaker_entry(SM_COMP_PATH.into())
 }
 
 // generic
-#[allow(dead_code)]
 fn get_sensemaker_entry(
     path: String,
 ) -> ExternResult<Option<(EntryHash, SensemakerEntry)>> {
@@ -190,26 +173,28 @@ fn get_sensemaker_entry(
 #[hdk_extern]
 /// set the sm_init state for the label to the `rep_lang` interpretation of `expr_str`
 pub fn set_state_machine_init(expr_str: String) -> ExternResult<bool> {
-    set_state_machine(SM_INIT_PATH.into(), expr_str)
+    set_sensemaker_entry(SM_INIT_PATH.into(), expr_str)
 }
 
 #[hdk_extern]
 /// set the sm_comp state for the label to the `rep_lang` interpretation of `expr_str`
 pub fn set_state_machine_comp(expr_str: String) -> ExternResult<bool> {
-    set_state_machine(SM_COMP_PATH.into(), expr_str)
+    set_sensemaker_entry(SM_COMP_PATH.into(), expr_str)
 }
 
-fn set_state_machine(path: String, expr_str: String) -> ExternResult<bool> {
+fn set_sensemaker_entry(path: String, expr_str: String) -> ExternResult<bool> {
     match call(    
         None, // todo: get hub cell
         "hub".into(), 
-        "set_state_machine".into(), 
+        "set_sensemaker_entry".into(), 
         None, 
         (path, expr_str))? {
             ZomeCallResponse::Ok(_) => return Ok(true),
             _ => todo!(),
     }
 }
+
+
 #[derive(Debug, Serialize, Deserialize, SerializedBytes)]
 pub struct StepSmInput {
     target_eh: EntryHash,

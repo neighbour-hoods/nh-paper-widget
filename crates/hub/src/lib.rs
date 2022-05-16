@@ -15,18 +15,18 @@ entry_defs![
     SensemakerEntry::entry_def()
 ];
 
+// do links even exist here anymore if the annotation holds on to the path?
 #[hdk_extern]
-fn link_to_sensemaker_entry(data_entry_hash: EntryHash) -> ExternResult<()> {
+fn link_to_sensemaker_entry(data_entry_hash: EntryHash, path: String) -> ExternResult<()> {
 
-  // TODO abstract/generalize this
-  let sensemaker_entryhash = match get_state_machine(ANN_TAG.into())? {
+  let sensemaker_entryhash = match get_sensemaker_entry(path.into())? {
       None => Err(WasmError::Guest(
           "sm_init is uninitialized for annotation".to_string(),
       )),
       Some((sensemaker_entryhash, _)) => Ok(sensemaker_entryhash),
   }?;
 
-  // TODO abstract/generalize this
+
   let sm_data_link_tag = LinkTag::new(format!("{}/{}", SM_DATA_TAG, ANN_TAG));
   create_link(data_entry_hash.clone(), sensemaker_entryhash, sm_data_link_tag)?;
   Ok(())
@@ -50,8 +50,9 @@ fn get_state_machine_data(
     }
     Ok(response)
 }
+
 #[hdk_extern]
-fn get_state_machine(path: String)-> ExternResult<Option<(EntryHash, SensemakerEntry)>> {
+fn get_sensemaker_entry(path_string: String)-> ExternResult<Option<(EntryHash, SensemakerEntry)>> {
     let opt_entryhash = get_single_linked_entry(path)?;
     match opt_entryhash {
         Some(entryhash) => {
@@ -62,8 +63,12 @@ fn get_state_machine(path: String)-> ExternResult<Option<(EntryHash, SensemakerE
     }
 }
 
-fn get_single_linked_entry(path: String) -> ExternResult<Option<EntryHash>> {
+fn get_single_linked_entry(path_string: String) -> ExternResult<Option<EntryHash>> {
   // TODO get links from PATH
+   let path = Path::try_from(path_string.clone())?;
+   path.ensure()?;
+   let anchor_hash = path.path_entry_hash()?;
+
     let links = get_links(
         anchor(anchor_type.clone(), anchor_text)?,
         Some(LinkTag::new(anchor_type)),
@@ -75,7 +80,7 @@ fn get_single_linked_entry(path: String) -> ExternResult<Option<EntryHash>> {
 }
 
 #[hdk_extern]
-fn set_state_machine(path: String, expr_str: String) -> ExternResult<bool> {
+fn set_sensemaker_entry(path: String, expr_str: String) -> ExternResult<bool> {
     let (_, sensemaker_entry) = create_sensemaker_entry_parse(CreateSensemakerEntryInputParse {
         expr: expr_str,
         args: vec![],
@@ -84,7 +89,7 @@ fn set_state_machine(path: String, expr_str: String) -> ExternResult<bool> {
     set_entry_link(path, sensemaker_entryhash)
 }
 
-/// updates the link from the anchor to point to `eh`. will remove any existing links.
+/// updates the link from the anchor to point to `entryhash`. will remove any existing links.
 /// returns true if there were links which were "overwritten".
 fn set_entry_link(path: String, entryhash: EntryHash) -> ExternResult<bool> {
     // TODO convert anchor to PATH
