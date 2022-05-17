@@ -9,10 +9,6 @@ pub const ANN_TAG: &str = "annotationz";
 
 pub const PAPER_PATH: &str = "widget.paperz"; //.${entry_hash} => "sm_data"
 
-pub const SM_COMP_PATH: &str = "sensemaker.sm_comp";
-pub const SM_INIT_PATH: &str = "sensemaker.sm_init";
-pub const SM_DATA_PATH: &str = "sensemaker.sm_data";
-
 entry_defs![
     Path::entry_def(),
     Paper::entry_def(),
@@ -91,8 +87,8 @@ fn get_annotations_for_paper(paper_entry_hash: EntryHash) -> ExternResult<Vec<(E
         debug!("Here is a links: {:?}", link);
         let annotation_entry_hash = link.target;
         match util::try_get_and_convert(
-            annotation_entry_hash.clone(), 
- GetOptions::content()) 
+            annotation_entry_hash.clone(),
+ GetOptions::content())
         {
             Ok(annotation) => {
                 debug!("Annotation: {:?}", annotation);
@@ -117,9 +113,9 @@ fn create_annotation(annotation: Annotation) -> ExternResult<(EntryHash, HeaderH
   // this is a write interface between a widget and the sensemaker hub
   call(
     None, // todo: get hub cell
-    "hub".into(), 
-        "create_sensemaker_entry".into(), 
-  None, 
+    "hub".into(),
+        "create_sensemaker_entry".into(),
+  None,
   annotation_entryhash.clone())?;
 
   Ok((annotation_entryhash, annotation_headerhash))
@@ -132,82 +128,16 @@ fn create_annotation(annotation: Annotation) -> ExternResult<(EntryHash, HeaderH
 fn get_state_machine_data(
     (target_eh, opt_label): (EntryHash, Option<String>),
 ) -> ExternResult<Vec<(EntryHash, SensemakerEntry)>> {
-    
-    match call(    
+
+    match call(
         None, // todo: get hub cell
-        "hub".into(), 
-        "get_state_machine_data".into(), 
-        None, 
+        "hub".into(),
+        "get_state_machine_data".into(),
+        None,
         (target_eh, opt_label))? {
             ZomeCallResponse::Ok(data) => {
                 return Ok(data.decode()?);
             },
-            _ => todo!(),
-        }
-}
-
-// generic
-fn get_sensemaker_entry(
-    path: String,
-) -> ExternResult<Option<(EntryHash, SensemakerEntry)>> {
-    match call(    
-        None, // todo: get hub cell
-        "hub".into(), 
-        "get_sensemaker_entry".into(), 
-        None, 
-        (path, link_tag)? {
-            ZomeCallResponse::Ok(data) => {
-                return Ok(data.decode()?);
-            },
-            _ => todo!(),
-        }
-}
-
-#[hdk_extern]
-/// set the sm_init state for the label to the `rep_lang` interpretation of `expr_str`
-pub fn set_state_machine_init(expr_str: String) -> ExternResult<bool> {
-    set_sensemaker_entry(SM_INIT_PATH.into(), expr_str)
-}
-
-#[hdk_extern]
-/// set the sm_comp state for the label to the `rep_lang` interpretation of `expr_str`
-pub fn set_state_machine_comp(expr_str: String) -> ExternResult<bool> {
-    set_sensemaker_entry(SM_COMP_PATH.into(), expr_str)
-}
-
-fn set_sensemaker_entry(path: String, expr_str: String) -> ExternResult<bool> {
-    match call(    
-        None, // todo: get hub cell
-        "hub".into(), 
-        "set_sensemaker_entry".into(), 
-        None, 
-        (path, expr_str))? {
-            ZomeCallResponse::Ok(_) => return Ok(true),
-            _ => todo!(),
-    }
-}
-
-
-#[derive(Debug, Serialize, Deserialize, SerializedBytes)]
-pub struct StepSmInput {
-    target_eh: EntryHash,
-    label: String,
-    act: String,
-}
-
-/// for a given EntryHash, look for a state machine state linked to it with the label suffix
-/// (link tag ~ `sm_data/$label`). look up the currently selected `sm_comp/$label` and apply that to
-/// both the state entry, and the action. update the link off of `target_eh` s.t. it points to the
-/// new state. this accomplishes "stepping" of the state machine.
-#[hdk_extern]
-fn step_sm(step_sm_input: StepSmInput)-> ExternResult<()> {
-    match call(    
-        None, // todo: get hub cell
-        "hub".into(), 
-        "step_sm".into(),
-        None, 
-        step_sm_input)? {
-            ZomeCallResponse::Ok(_) => return Ok(()),
             _ => todo!(),
         }
 }

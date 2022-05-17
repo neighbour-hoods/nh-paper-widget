@@ -325,6 +325,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "hub"
+version = "0.1.0"
+dependencies = [
+ "common",
+ "hdk",
+ "rep_lang_core",
+ "rep_lang_runtime",
+ "serde",
+]
+
+[[package]]
 name = "indexmap"
 version = "1.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -474,6 +485,7 @@ version = "0.1.0"
 dependencies = [
  "common",
  "hdk",
+ "hub",
  "rep_lang_core",
  "rep_lang_runtime",
  "serde",

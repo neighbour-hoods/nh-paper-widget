@@ -15,6 +15,86 @@ entry_defs![
     SensemakerEntry::entry_def()
 ];
 
+pub const SM_COMP_PATH: &str = "sensemaker.sm_comp";
+pub const SM_INIT_PATH: &str = "sensemaker.sm_init";
+pub const SM_DATA_PATH: &str = "sensemaker.sm_data";
+
+#[hdk_extern]
+fn get_state_machine_init(_:()) -> ExternResult<Option<(EntryHash, SensemakerEntry)>> {
+    get_sensemaker_entry(SM_INIT_PATH.into())
+}
+
+#[hdk_extern]
+fn get_state_machine_comp(_:()) -> ExternResult<Option<(EntryHash, SensemakerEntry)>> {
+    get_sensemaker_entry(SM_COMP_PATH.into())
+}
+
+// generic
+fn get_sensemaker_entry(
+    path: String,
+) -> ExternResult<Option<(EntryHash, SensemakerEntry)>> {
+    match call(
+        None, // todo: get hub cell
+        "hub".into(),
+        "get_sensemaker_entry".into(),
+        None,
+        (path, link_tag)? {
+            ZomeCallResponse::Ok(data) => {
+                return Ok(data.decode()?);
+            },
+            _ => todo!(),
+        }
+}
+
+#[hdk_extern]
+/// set the sm_init state for the label to the `rep_lang` interpretation of `expr_str`
+pub fn set_state_machine_init(expr_str: String) -> ExternResult<bool> {
+    set_sensemaker_entry(SM_INIT_PATH.into(), expr_str)
+}
+
+#[hdk_extern]
+/// set the sm_comp state for the label to the `rep_lang` interpretation of `expr_str`
+pub fn set_state_machine_comp(expr_str: String) -> ExternResult<bool> {
+    set_sensemaker_entry(SM_COMP_PATH.into(), expr_str)
+}
+
+fn set_sensemaker_entry(path: String, expr_str: String) -> ExternResult<bool> {
+    match call(
+        None, // todo: get hub cell
+        "hub".into(),
+        "set_sensemaker_entry".into(),
+        None,
+        (path, expr_str))? {
+            ZomeCallResponse::Ok(_) => return Ok(true),
+            _ => todo!(),
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize, SerializedBytes)]
+pub struct StepSmInput {
+    target_eh: EntryHash,
+    label: String,
+    act: String,
+}
+
+/// for a given EntryHash, look for a state machine state linked to it with the label suffix
+/// (link tag ~ `sm_data/$label`). look up the currently selected `sm_comp/$label` and apply that to
+/// both the state entry, and the action. update the link off of `target_eh` s.t. it points to the
+/// new state. this accomplishes "stepping" of the state machine.
+#[hdk_extern]
+fn step_sm(step_sm_input: StepSmInput)-> ExternResult<()> {
+    match call(
+        None, // todo: get hub cell
+        "hub".into(),
+        "step_sm".into(),
+        None,
+        step_sm_input)? {
+            ZomeCallResponse::Ok(_) => return Ok(()),
+            _ => todo!(),
+        }
+}
+
+
 // // do links even exist here anymore if the annotation holds on to the path?
 // #[hdk_extern]
 // fn link_to_sensemaker_entry(data_entry_hash: EntryHash, path: String) -> ExternResult<()> {
@@ -35,7 +115,7 @@ entry_defs![
 #[hdk_entry]
 fn initialize_sm_data(path_string: String, link_tag_string: String) -> ExternResult(()) {
     // get current sm_init
-    
+
     // create sm_data at sm_init value
 
     // link to end of given path with given link tag
@@ -80,13 +160,13 @@ fn get_single_linked_entry(path_string: String, link_tag_string: String) -> Exte
         None => Ok(None),
         Some(link) => Ok(Some(link.target))
     }
-} 
+}
 
 
 #[hdk_extern]
 fn set_sensemaker_entry(
-    path_string: String, 
-    link_tag_string: String, 
+    path_string: String,
+    link_tag_string: String,
     expr_str: String) -> ExternResult<()> {
     let (_, sensemaker_entry) = create_sensemaker_entry_parse(CreateSensemakerEntryInputParse {
         expr: expr_str,
