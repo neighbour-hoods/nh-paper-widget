@@ -294,6 +294,7 @@ const App = {
         payload: obj,
         provenance: cell_id[1],
       });
+      this.get_paperz();
     }
   },
   mounted() {
