@@ -94,7 +94,9 @@
       <div v-for="ann in paper.annotationz" style="border: 3px solid #800080;">
         {{ann[1]}}
         <br>
-        {{ann[2]}}
+        {{"=>"}}
+        <br>
+        {{ann[2][0][1].output_flat_value}}
         <form id="step_sm_annotation" @submit.prevent="handleStepSm(ann[0], $event)">
           action: <input name="action" type="text" required /> <br>
           <button type="submit">submit</button>
