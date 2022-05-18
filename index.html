@@ -56,6 +56,21 @@
     </div>
 
     <div class="container">
+      <h3 class='subtitle'>set sm_label_map</h3>
+      <form id="sm_label_map" @submit.prevent="set_sm_label_map">
+        <textarea
+          id="comp"
+          cols="28"
+          rows="5"
+          v-model="sm_submit.sm_label_map"
+          required
+        ></textarea>
+        <br>
+        <button type="submit">submit</button>
+      </form>
+    </div>
+
+    <div class="container">
       <h3 class='subtitle'>sm_init_s</h3>
       <p>{{sm_init_s}}</p>
     </div>

@@ -49,10 +49,17 @@ const App = {
           st))
       st)))`,
         },
+        sm_label_map: `\
+{
+  0: "unreviewed",
+  1: "accepted",
+}`,
       },
       sm_init_s: {
       },
       sm_comp_s: {
+      },
+      sm_label_map_s: {
       },
     }
   },
@@ -295,6 +302,9 @@ const App = {
         provenance: cell_id[1],
       });
       this.get_paperz();
+    },
+    set_sm_label_map() {
+      console.log(this.sm_submit.sm_label_map);
     }
   },
   mounted() {
