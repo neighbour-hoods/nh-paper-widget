@@ -115,7 +115,7 @@
         <br>
         {{"=>"}}
         <br>
-        {{ann[2][0][1].output_flat_value}}
+        {{render_sm_label(ann[2][0][1].output_flat_value)}}
         <form id="step_sm_annotation" @submit.prevent="handleStepSm(ann[0], $event)">
           action: <input name="action" type="text" required /> <br>
           <button type="submit">submit</button>

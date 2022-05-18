@@ -332,6 +332,21 @@ const App = {
       });
       console.log(res);
       this.get_sm_init_and_comp_and_label_map();
+    },
+    render_sm_label(output_flat_value) {
+      if (output_flat_value.hasOwnProperty('VInt')) {
+        let tag = output_flat_value['VInt'];
+        let label = this.sm_label_map_s['annotationz'][String(tag)];
+        return label;
+      }
+      if (output_flat_value.hasOwnProperty('VPair')) {
+        let fst = output_flat_value['VPair'][0];
+        if (fst.hasOwnProperty('VInt')) {
+          let tag = fst['VInt'];
+          let label = this.sm_label_map_s['annotationz'][String(tag)];
+          return `${label} ${output_flat_value['VPair'][1]}`;
+        }
+      }
     }
   },
   mounted() {
