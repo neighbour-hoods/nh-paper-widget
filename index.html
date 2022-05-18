@@ -83,6 +83,19 @@
       <p>{{sm_label_map_s}}</p>
     </div>
 
+    <div>
+      <summary>holochain ports</summary>
+      <div class='form_class'>
+        <form id="hc_ports" @submit.prevent="handleHcPortSubmit">
+          <input type="number" v-model="hcAppPort" required /> <br>
+
+          <input type="number" v-model="hcAdminPort" required /> <br>
+          <br>
+          <button type="submit">submit</button>
+        </form>
+      </div>
+    </div>
+
     <div class="container">
       <!--UPLOAD-->
       <form enctype="multipart/form-data" novalidate v-if="isInitial || isSaving">
@@ -124,19 +137,6 @@
       <iframe v-bind:src="`${paper[1].blob_str}`" width="100%" height="500px">
     </div>
   </div>
-
-  <details>
-    <summary>holochain ports</summary>
-    <div class='form_class'>
-      <form id="hc_ports" @submit.prevent="handleHcPortSubmit">
-        <input type="number" v-model="hcAppPort" required /> <br>
-
-        <input type="number" v-model="hcAdminPort" required /> <br>
-        <br>
-        <button type="submit">submit</button>
-      </form>
-    </div>
-  </details>
 
 </section>
 </body>

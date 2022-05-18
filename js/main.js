@@ -337,14 +337,14 @@ const App = {
       if (output_flat_value.hasOwnProperty('VInt')) {
         let tag = output_flat_value['VInt'];
         let label = this.sm_label_map_s['annotationz'][String(tag)];
-        return label;
+        return `state: ${label}`;
       }
       if (output_flat_value.hasOwnProperty('VPair')) {
         let fst = output_flat_value['VPair'][0];
         if (fst.hasOwnProperty('VInt')) {
           let tag = fst['VInt'];
           let label = this.sm_label_map_s['annotationz'][String(tag)];
-          return `${label} ${output_flat_value['VPair'][1]}`;
+          return `state: ${label} | count: ${JSON.stringify(output_flat_value['VPair'][1])}`;
         }
       }
     }

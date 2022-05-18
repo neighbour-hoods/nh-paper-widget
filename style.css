@@ -323,22 +323,4 @@ details{
   box-shadow: 0px 0px 2px black;
 }
 
-details summary{
-  margin-bottom: 12px;
-    font-size: 1.2em;
-    cursor: pointer;
-}
-
-@keyframes details-show {
-  from {
-    opacity:0;
-    transform: var(--details-translate, translateY(-0.5em));
-  }
-}
-
-details[open] > *:not(summary) {
-  animation: details-show 250ms ease-in-out;
-}
-
-
 </style>
