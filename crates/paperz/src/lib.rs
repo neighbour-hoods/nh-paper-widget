@@ -1,4 +1,5 @@
 use hdk::prelude::*;
+use std::collections::HashMap;
 
 // create_sensemaker_entry_full, get_sensemaker_entry,
 // get_sensemaker_entry_by_headerhash, pack_ses_into_list_se,
@@ -25,7 +26,8 @@ entry_defs![
     Path::entry_def(),
     Paper::entry_def(),
     Annotation::entry_def(),
-    SensemakerEntry::entry_def()
+    SensemakerEntry::entry_def(),
+    SmLabelMap::entry_def()
 ];
 
 #[hdk_entry]
@@ -219,6 +221,38 @@ fn set_entry_link(anchor_type: String, anchor_text: String, eh: EntryHash) -> Ex
     for link in links {
         delete_link(link.create_link_hash)?;
     }
+    create_link(anchor, eh, link_tag)?;
+    Ok(did_overwrite)
+}
+
+#[hdk_entry]
+pub struct SmLabelMap(HashMap<String, String>);
+
+#[hdk_extern]
+pub fn get_sm_label_map(label: String) -> ExternResult<Option<SmLabelMap>> {
+    let anchor = anchor("sm_label_map".into(), "".into())?;
+    let link_tag = LinkTag::new(label.clone());
+    let links = get_links(anchor.clone(), Some(link_tag.clone()))?;
+    match &links[..] {
+        [lnk] => {
+            let sm_label_map = util::try_get_and_convert(lnk.target.clone(), GetOptions::content())?;
+            Ok(Some(sm_label_map))
+        }
+        _ => Ok(None),
+    }
+}
+
+#[hdk_extern]
+pub fn set_sm_label_map((label, sm_label_map): (String, SmLabelMap)) -> ExternResult<bool> {
+    let anchor = anchor("sm_label_map".into(), "".into())?;
+    let link_tag = LinkTag::new(label);
+    let links = get_links(anchor.clone(), Some(link_tag.clone()))?;
+    let did_overwrite = !links.is_empty();
+    for link in links {
+        delete_link(link.create_link_hash)?;
+    }
+    let _hh = create_entry(&sm_label_map)?;
+    let eh = hash_entry(&sm_label_map)?;
     create_link(anchor, eh, link_tag)?;
     Ok(did_overwrite)
 }

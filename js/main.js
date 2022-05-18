@@ -51,8 +51,8 @@ const App = {
         },
         sm_label_map: `\
 {
-  0: "unreviewed",
-  1: "accepted",
+  "0": "unreviewed",
+  "1": "accepted"
 }`,
       },
       sm_init_s: {
@@ -76,7 +76,7 @@ const App = {
     console.log("hcInfo:");
     console.log(hcInfo);
 
-    this.get_sm_init_and_comp_s();
+    this.get_sm_init_and_comp_and_label_map();
 
     this.get_paperz();
   },
@@ -105,7 +105,7 @@ const App = {
       localStorage.setItem('hcAdminPort', this.hcAdminPort);
       window.location.reload()
     },
-    async get_sm_init_and_comp_s() {
+    async get_sm_init_and_comp_and_label_map() {
       const labels = ["annotationz"];
 
       let info = await this.hcInfo.appWs.appInfo({
@@ -133,11 +133,21 @@ const App = {
           payload: label,
           provenance: cell_id[1],
         });
+        this.sm_label_map_s[label] = await this.hcInfo.appWs.callZome({
+          cap: null,
+          cell_id: cell_id,
+          zome_name: 'paperz_main_zome',
+          fn_name: 'get_sm_label_map',
+          payload: label,
+          provenance: cell_id[1],
+        });
       }
       console.log("sm_init_s:");
       console.log(this.sm_init_s);
       console.log("sm_comp_s:");
       console.log(this.sm_comp_s);
+      console.log("sm_label_map_s:");
+      console.log(this.sm_label_map_s);
     },
     async get_paperz() {
       let info = await this.hcInfo.appWs.appInfo({
@@ -200,7 +210,7 @@ const App = {
         provenance: cell_id[1],
       });
       console.log(res);
-      this.get_sm_init_and_comp_s();
+      this.get_sm_init_and_comp_and_label_map();
     },
     async set_sm_comp() {
       let info = await this.hcInfo.appWs.appInfo({
@@ -217,7 +227,7 @@ const App = {
         provenance: cell_id[1],
       });
       console.log(res);
-      this.get_sm_init_and_comp_s();
+      this.get_sm_init_and_comp_and_label_map();
     },
     async handlePaperSubmit(evt) {
       this.currentStatus = STATUS_SAVING;
@@ -303,8 +313,25 @@ const App = {
       });
       this.get_paperz();
     },
-    set_sm_label_map() {
-      console.log(this.sm_submit.sm_label_map);
+    async set_sm_label_map() {
+      let info = await this.hcInfo.appWs.appInfo({
+        // TODO figure out why this works... it shouldn't, I think?
+        installed_app_id: 'test-app',
+      });
+      const cell_id = info.cell_data[0].cell_id;
+      let obj = JSON.parse(this.sm_submit.sm_label_map);
+      console.log("obj:");
+      console.log(obj);
+      let res = await this.hcInfo.appWs.callZome({
+        cap: null,
+        cell_id: cell_id,
+        zome_name: 'paperz_main_zome',
+        fn_name: 'set_sm_label_map',
+        payload: ["annotationz", obj],
+        provenance: cell_id[1],
+      });
+      console.log(res);
+      this.get_sm_init_and_comp_and_label_map();
     }
   },
   mounted() {
