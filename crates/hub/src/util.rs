@@ -16,7 +16,7 @@ pub fn try_get_and_convert<T: TryFrom<Entry>>(
     }
 }
 
-pub fn try_get_and_convert_with_hh<T: TryFrom<Entry>>(
+pub fn _try_get_and_convert_with_hh<T: TryFrom<Entry>>(
     entry_hash: EntryHash,
     get_options: GetOptions,
 ) -> ExternResult<(T, HeaderHash)> {

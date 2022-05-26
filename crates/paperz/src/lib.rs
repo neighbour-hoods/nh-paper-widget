@@ -1,8 +1,7 @@
 use hdk::prelude::*;
 
 use common::SensemakerEntry;
-
-mod util;
+use hub::util;
 
 pub const PAPER_TAG: &str = "paperz_paper";
 pub const ANN_TAG: &str = "annotationz";
@@ -11,7 +10,6 @@ pub const PAPER_PATH: &str = "widget.paperz"; //.${entry_hash} => "sm_data"
 
 pub const SM_COMP_PATH: &str = "sensemaker.sm_comp";
 pub const SM_INIT_PATH: &str = "sensemaker.sm_init";
-pub const SM_DATA_PATH: &str = "sensemaker.sm_data";
 
 entry_defs![
     Path::entry_def(),
@@ -52,7 +50,11 @@ fn upload_paper(paper: Paper) -> ExternResult<HeaderHash> {
 
     let paper_hh = create_entry(&paper)?;
     let paper_eh = hash_entry(&paper)?;
-    create_link(paper_anchor()?, paper_eh, LinkTag::new(PAPER_TAG))?;
+    create_link(
+        paper_anchor()?, 
+        paper_eh,
+        LinkType(0),
+        LinkTag::new(PAPER_TAG))?;
 
     Ok(paper_hh)
 }
@@ -92,7 +94,7 @@ fn get_annotations_for_paper(paper_entry_hash: EntryHash) -> ExternResult<Vec<(E
         let annotation_entry_hash = link.target;
         match util::try_get_and_convert(
             annotation_entry_hash.clone(), 
- GetOptions::content()) 
+            GetOptions::content()) 
         {
             Ok(annotation) => {
                 debug!("Annotation: {:?}", annotation);
@@ -111,8 +113,16 @@ fn create_annotation(annotation: Annotation) -> ExternResult<(EntryHash, HeaderH
 
   let annotation_headerhash = create_entry(&annotation)?;
   let annotation_entryhash = hash_entry(&annotation)?;
-  create_link(annotation_anchor()?, annotation_entryhash.clone(), LinkTag::new(ANN_TAG))?;
-  create_link(annotation.paper_ref, annotation_entryhash.clone(), LinkTag::new(ANN_TAG))?;
+  create_link(
+      annotation_anchor()?, 
+      annotation_entryhash.clone(), 
+      LinkType(0),
+      LinkTag::new(ANN_TAG))?;
+  create_link(
+      annotation.paper_ref, 
+      annotation_entryhash.clone(), 
+      LinkType(0),
+      LinkTag::new(ANN_TAG))?;
 
   // this is a write interface between a widget and the sensemaker hub
   call(
@@ -146,22 +156,22 @@ fn get_state_machine_data(
         }
 }
 
-// generic
-fn get_sensemaker_entry(
-    path: String,
-) -> ExternResult<Option<(EntryHash, SensemakerEntry)>> {
-    match call(    
-        None, // todo: get hub cell
-        "hub".into(), 
-        "get_sensemaker_entry".into(), 
-        None, 
-        (path, link_tag)? {
-            ZomeCallResponse::Ok(data) => {
-                return Ok(data.decode()?);
-            },
-            _ => todo!(),
-        }
-}
+// // generic
+// fn _get_sensemaker_entry(
+//     path: String,
+// ) -> ExternResult<Option<(EntryHash, SensemakerEntry)>> {
+//     match call(    
+//         None, // todo: get hub cell
+//         "hub".into(), 
+//         "get_sensemaker_entry".into(), 
+//         None, 
+//         (path, link_tag))? {
+//             ZomeCallResponse::Ok(data) => {
+//                 return Ok(data.decode()?);
+//             },
+//             _ => todo!(),
+//         }
+// }
 
 #[hdk_extern]
 /// set the sm_init state for the label to the `rep_lang` interpretation of `expr_str`
