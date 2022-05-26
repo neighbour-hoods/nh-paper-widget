@@ -8,7 +8,7 @@
       flake = false;
     };
     rust-overlay.url = "github:oxalica/rust-overlay";
-    naersk.url = "github:mhuesch/naersk";
+    naersk.url = "github:nix-community/naersk";
 
     # misc
     flake-compat = {
@@ -20,15 +20,20 @@
   outputs = { self, nixpkgs, flake-utils, node2nix, holonix, rust-overlay, naersk, ... }:
     flake-utils.lib.eachDefaultSystem (system:
       let
-        holonixMain = import holonix { };
+        holonixMain = import holonix {
+          holochainVersionId = "v0_0_139";
+        };
+
 
         pkgs = import nixpkgs {
           inherit system;
           overlays = [ rust-overlay.overlay ];
         };
 
-        rustVersion = "1.55.0";
+        rustVersion = "1.60.0";
+
       in
+
       with pkgs;
       {
         devShell = pkgs.mkShell {
