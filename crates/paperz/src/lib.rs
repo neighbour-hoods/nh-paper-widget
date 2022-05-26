@@ -66,7 +66,7 @@ fn get_all_papers(_: ()) -> ExternResult<Vec<(EntryHash, Paper)>> {
     let mut paperz: Vec<(EntryHash, Paper)> = Vec::new();
     for lnk in paper_entry_links {
         let res: ExternResult<(EntryHash, Paper)> = {
-            let paper_eh = lnk.target;
+            let paper_eh = lnk.target.into_entry_hash().expect("should be an Entry.");
             let (paper, _hh) =
                 util::try_get_and_convert_with_hh(paper_eh.clone(), GetOptions::content())?;
             Ok((paper_eh, paper))
@@ -91,7 +91,7 @@ fn get_annotations_for_paper(paper_entry_hash: EntryHash) -> ExternResult<Vec<(E
     debug!("Created empty vector");
     for link in get_links(paper_entry_hash, Some(LinkTag::new(ANN_TAG)))? {
         debug!("Here is a links: {:?}", link);
-        let annotation_entry_hash = link.target;
+        let annotation_entry_hash = link.target.into_entry_hash().expect("should be an Entry.");
         match util::try_get_and_convert(
             annotation_entry_hash.clone(), 
             GetOptions::content()) 

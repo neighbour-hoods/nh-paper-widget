@@ -8,7 +8,7 @@ use common::{
     SensemakerEntry,
 };
 
-mod util;
+pub mod util;
 
 entry_defs![
     Path::entry_def(),
@@ -64,7 +64,7 @@ pub const SM_DATA_TAG: &str = "sm_data";
 // }
 
 #[hdk_extern]
-fn get_sensemaker_entry((path_string, link_tag_string): (String, String)) -> ExternResult<Option<(EntryHash, SensemakerEntry)>> {
+fn get_sensemaker_entry_by_path((path_string, link_tag_string): (String, String)) -> ExternResult<Option<(EntryHash, SensemakerEntry)>> {
     match get_single_linked_entry(path_string, link_tag_string)? {
         Some(entryhash) => {
             let sensemaker_entry = util::try_get_and_convert(entryhash.clone(), GetOptions::content())?;
@@ -140,13 +140,13 @@ fn step_sm((
     // path -> widget.paperz.annotationz => link tag -> sm_comp
     let sm_data_path: String = format!("{}.{}", path_string, entry_hash);
     // 1. get sm_data
-    let (sm_data_eh, _sm_data_entry) = match get_sensemaker_entry((sm_data_path.clone(), "sm_data".into()))? {
+    let (sm_data_eh, _sm_data_entry) = match get_sensemaker_entry_by_path((sm_data_path.clone(), "sm_data".into()))? {
         Some(pair) => Ok(pair),
         None => Err(WasmError::Guest("sm_data: invalid".into())),
     }?;
 
     // 2. get sm_comp
-    let (sm_comp_eh, _sm_comp_entry) = match get_sensemaker_entry((path_string, "sm_comp".into()))? {
+    let (sm_comp_eh, _sm_comp_entry) = match get_sensemaker_entry_by_path((path_string, "sm_comp".into()))? {
         Some(pair) => Ok(pair),
         None => Err(WasmError::Guest("sm_comp: invalid".into())),
     }?;
