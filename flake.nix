@@ -22,6 +22,9 @@
       let
         holonixMain = import holonix {
           holochainVersionId = "v0_0_139";
+          include = {
+            rust = false;
+          };
         };
 
 
@@ -31,6 +34,8 @@
         };
 
         rustVersion = "1.60.0";
+
+        wasmTarget = "wasm32-unknown-unknown";
 
       in
 
@@ -49,6 +54,9 @@
             nodePackages.webpack
             nodePackages.webpack-cli
             miniserve
+            (rust-bin.stable.${rustVersion}.default.override {
+              targets = [ wasmTarget ];
+            })
           ]);
 
           shellHook = ''
@@ -103,8 +111,6 @@
 
         packages.paperz-naersk =
           let
-            wasmTarget = "wasm32-unknown-unknown";
-
             rust = pkgs.rust-bin.stable.${rustVersion}.default.override {
               targets = [ wasmTarget ];
             };
