@@ -34,7 +34,6 @@ pub struct Annotation {
     pub paragraph_num: u64,
     pub what_it_says: String,
     pub what_it_should_say: String,
-
 }
 
 fn paper_anchor() -> ExternResult<EntryHash> {
@@ -51,10 +50,11 @@ fn upload_paper(paper: Paper) -> ExternResult<HeaderHash> {
     let paper_hh = create_entry(&paper)?;
     let paper_eh = hash_entry(&paper)?;
     create_link(
-        paper_anchor()?, 
+        paper_anchor()?,
         paper_eh,
         LinkType(0),
-        LinkTag::new(PAPER_TAG))?;
+        LinkTag::new(PAPER_TAG),
+    )?;
 
     Ok(paper_hh)
 }
@@ -85,17 +85,16 @@ fn annotation_anchor() -> ExternResult<EntryHash> {
 }
 
 #[hdk_extern]
-fn get_annotations_for_paper(paper_entry_hash: EntryHash) -> ExternResult<Vec<(EntryHash, Annotation)>> {
+fn get_annotations_for_paper(
+    paper_entry_hash: EntryHash,
+) -> ExternResult<Vec<(EntryHash, Annotation)>> {
     debug!("Getting annotations");
     let mut annotations: Vec<(EntryHash, Annotation)> = Vec::new();
     debug!("Created empty vector");
     for link in get_links(paper_entry_hash, Some(LinkTag::new(ANN_TAG)))? {
         debug!("Here is a links: {:?}", link);
         let annotation_entry_hash = link.target.into_entry_hash().expect("should be an Entry.");
-        match util::try_get_and_convert(
-            annotation_entry_hash.clone(), 
-            GetOptions::content()) 
-        {
+        match util::try_get_and_convert(annotation_entry_hash.clone(), GetOptions::content()) {
             Ok(annotation) => {
                 debug!("Annotation: {:?}", annotation);
                 annotations.push((annotation_entry_hash, annotation));
@@ -110,29 +109,31 @@ fn get_annotations_for_paper(paper_entry_hash: EntryHash) -> ExternResult<Vec<(E
 
 #[hdk_extern]
 fn create_annotation(annotation: Annotation) -> ExternResult<(EntryHash, HeaderHash)> {
+    let annotation_headerhash = create_entry(&annotation)?;
+    let annotation_entryhash = hash_entry(&annotation)?;
+    create_link(
+        annotation_anchor()?,
+        annotation_entryhash.clone(),
+        LinkType(0),
+        LinkTag::new(ANN_TAG),
+    )?;
+    create_link(
+        annotation.paper_ref,
+        annotation_entryhash.clone(),
+        LinkType(0),
+        LinkTag::new(ANN_TAG),
+    )?;
 
-  let annotation_headerhash = create_entry(&annotation)?;
-  let annotation_entryhash = hash_entry(&annotation)?;
-  create_link(
-      annotation_anchor()?, 
-      annotation_entryhash.clone(), 
-      LinkType(0),
-      LinkTag::new(ANN_TAG))?;
-  create_link(
-      annotation.paper_ref, 
-      annotation_entryhash.clone(), 
-      LinkType(0),
-      LinkTag::new(ANN_TAG))?;
+    // this is a write interface between a widget and the sensemaker hub
+    call(
+        None, // todo: get hub cell
+        "hub".into(),
+        "create_sensemaker_entry".into(),
+        None,
+        annotation_entryhash.clone(),
+    )?;
 
-  // this is a write interface between a widget and the sensemaker hub
-  call(
-    None, // todo: get hub cell
-    "hub".into(), 
-        "create_sensemaker_entry".into(), 
-  None, 
-  annotation_entryhash.clone())?;
-
-  Ok((annotation_entryhash, annotation_headerhash))
+    Ok((annotation_entryhash, annotation_headerhash))
 }
 
 /**
@@ -142,29 +143,29 @@ fn create_annotation(annotation: Annotation) -> ExternResult<(EntryHash, HeaderH
 fn get_state_machine_data(
     (target_eh, opt_label): (EntryHash, Option<String>),
 ) -> ExternResult<Vec<(EntryHash, SensemakerEntry)>> {
-    
-    match call(    
+    match call(
         None, // todo: get hub cell
-        "hub".into(), 
-        "get_state_machine_data".into(), 
-        None, 
-        (target_eh, opt_label))? {
-            ZomeCallResponse::Ok(data) => {
-                return Ok(data.decode()?);
-            },
-            _ => todo!(),
+        "hub".into(),
+        "get_state_machine_data".into(),
+        None,
+        (target_eh, opt_label),
+    )? {
+        ZomeCallResponse::Ok(data) => {
+            return Ok(data.decode()?);
         }
+        _ => todo!(),
+    }
 }
 
 // // generic
 // fn _get_sensemaker_entry(
 //     path: String,
 // ) -> ExternResult<Option<(EntryHash, SensemakerEntry)>> {
-//     match call(    
+//     match call(
 //         None, // todo: get hub cell
-//         "hub".into(), 
-//         "get_sensemaker_entry".into(), 
-//         None, 
+//         "hub".into(),
+//         "get_sensemaker_entry".into(),
+//         None,
 //         (path, link_tag))? {
 //             ZomeCallResponse::Ok(data) => {
 //                 return Ok(data.decode()?);
@@ -186,17 +187,17 @@ pub fn set_state_machine_comp(expr_str: String) -> ExternResult<bool> {
 }
 
 fn set_sensemaker_entry(path: String, expr_str: String) -> ExternResult<bool> {
-    match call(    
+    match call(
         None, // todo: get hub cell
-        "hub".into(), 
-        "set_sensemaker_entry".into(), 
-        None, 
-        (path, expr_str))? {
-            ZomeCallResponse::Ok(_) => return Ok(true),
-            _ => todo!(),
+        "hub".into(),
+        "set_sensemaker_entry".into(),
+        None,
+        (path, expr_str),
+    )? {
+        ZomeCallResponse::Ok(_) => return Ok(true),
+        _ => todo!(),
     }
 }
-
 
 #[derive(Debug, Serialize, Deserialize, SerializedBytes)]
 pub struct StepSmInput {
@@ -210,14 +211,15 @@ pub struct StepSmInput {
 /// both the state entry, and the action. update the link off of `target_eh` s.t. it points to the
 /// new state. this accomplishes "stepping" of the state machine.
 #[hdk_extern]
-fn step_sm(step_sm_input: StepSmInput)-> ExternResult<()> {
-    match call(    
+fn step_sm(step_sm_input: StepSmInput) -> ExternResult<()> {
+    match call(
         None, // todo: get hub cell
-        "hub".into(), 
+        "hub".into(),
         "step_sm".into(),
-        None, 
-        step_sm_input)? {
-            ZomeCallResponse::Ok(_) => return Ok(()),
-            _ => todo!(),
-        }
+        None,
+        step_sm_input,
+    )? {
+        ZomeCallResponse::Ok(_) => return Ok(()),
+        _ => todo!(),
+    }
 }
