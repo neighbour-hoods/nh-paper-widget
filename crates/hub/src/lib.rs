@@ -100,7 +100,7 @@ fn set_sensemaker_entry(
     })?;
     let sensemaker_entryhash = hash_entry(sensemaker_entry)?;
 
-    let path = Path::try_from(path_string.clone())?;
+    let path = Path::try_from(path_string)?;
     path.ensure()?;
     let anchor_hash = path.path_entry_hash()?;
     create_link(
