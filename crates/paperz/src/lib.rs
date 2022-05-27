@@ -1,7 +1,6 @@
 use hdk::prelude::*;
 
-use common::SensemakerEntry;
-use hub::util;
+use common::{util, SensemakerEntry};
 
 pub const PAPER_TAG: &str = "paperz_paper";
 pub const ANN_TAG: &str = "annotationz";

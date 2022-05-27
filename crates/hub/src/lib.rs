@@ -4,11 +4,9 @@ use hdk::prelude::*;
 // get_sensemaker_entry_by_headerhash, pack_ses_into_list_se,
 // CreateSensemakerEntryInput, CreateSensemakerEntryInputParse, SchemeEntry,
 use common::{
-    create_sensemaker_entry_parse, mk_application_se, CreateSensemakerEntryInputParse,
+    create_sensemaker_entry_parse, mk_application_se, util, CreateSensemakerEntryInputParse,
     SensemakerEntry,
 };
-
-pub mod util;
 
 entry_defs![Path::entry_def(), SensemakerEntry::entry_def()];
 

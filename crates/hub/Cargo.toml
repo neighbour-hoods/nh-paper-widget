@@ -9,7 +9,7 @@ license = "MIT"
 hdk = "0.0.132"
 serde = "1"
 
-common = { git = "https://github.com/neighbour-hoods/social_sensemaker.git", rev = "eca812d1fadc1e1d9c9cf58c14032ee25155dd34" }
+common = { git = "https://github.com/neighbour-hoods/social_sensemaker.git", rev = "27434917ed848eb5c9c29e5899c870d16baf8c8c" }
 rep_lang_core = { git = "https://github.com/neighbour-hoods/rep_lang.git", rev = "bf44c3e80e0c98cfded6b7c1ba7caa38cb2449a8", features = ["hc"] }
 rep_lang_runtime = { git = "https://github.com/neighbour-hoods/rep_lang.git", rev = "bf44c3e80e0c98cfded6b7c1ba7caa38cb2449a8", features = ["hc"] }
 
