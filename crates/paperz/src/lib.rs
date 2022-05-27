@@ -13,8 +13,7 @@ pub const SM_INIT_PATH: &str = "sensemaker.sm_init";
 entry_defs![
     Path::entry_def(),
     Paper::entry_def(),
-    Annotation::entry_def(),
-    SensemakerEntry::entry_def()
+    Annotation::entry_def()
 ];
 
 #[hdk_entry]
@@ -125,7 +124,7 @@ fn create_annotation(annotation: Annotation) -> ExternResult<(EntryHash, HeaderH
 
     // this is a write interface between a widget and the sensemaker hub
     call(
-        None, // todo: get hub cell
+        CallTargetCell::Local,
         "hub".into(),
         "create_sensemaker_entry".into(),
         None,
@@ -143,7 +142,7 @@ fn get_state_machine_data(
     (target_eh, opt_label): (EntryHash, Option<String>),
 ) -> ExternResult<Vec<(EntryHash, SensemakerEntry)>> {
     match call(
-        None, // todo: get hub cell
+        CallTargetCell::Local,
         "hub".into(),
         "get_state_machine_data".into(),
         None,
@@ -187,7 +186,7 @@ pub fn set_state_machine_comp(expr_str: String) -> ExternResult<bool> {
 
 fn set_sensemaker_entry(path: String, expr_str: String) -> ExternResult<bool> {
     match call(
-        None, // todo: get hub cell
+        CallTargetCell::Local,
         "hub".into(),
         "set_sensemaker_entry".into(),
         None,
@@ -212,7 +211,7 @@ pub struct StepSmInput {
 #[hdk_extern]
 fn step_sm(step_sm_input: StepSmInput) -> ExternResult<()> {
     match call(
-        None, // todo: get hub cell
+        CallTargetCell::Local,
         "hub".into(),
         "step_sm".into(),
         None,
