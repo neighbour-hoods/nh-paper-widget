@@ -75,7 +75,7 @@ fn set_hub_cell_id((dna_hash, agent_pubkey): (DnaHash, AgentPubKey)) -> ExternRe
 }
 
 #[hdk_extern]
-fn get_hub_cell_id(_:()) -> ExternResult<CellId> {
+fn get_hub_cell_id(_: ()) -> ExternResult<CellId> {
     debug!("Getting hub cellId...");
     match get_single_linked_entry()? {
         Some(entryhash) => {
@@ -222,23 +222,23 @@ fn get_state_machine_data(
 }
 
 #[hdk_extern]
-fn get_state_machine_init(_: ()) -> ExternResult<(EntryHash, SensemakerEntry)> {
-    get_state_machine_generic(SM_INIT_TAG)
+fn get_state_machine_init(path_string: String) -> ExternResult<(EntryHash, SensemakerEntry)> {
+    get_state_machine_generic(path_string, SM_INIT_TAG)
 }
 
 #[hdk_extern]
-fn get_state_machine_comp(_: ()) -> ExternResult<(EntryHash, SensemakerEntry)> {
-    get_state_machine_generic(SM_COMP_TAG)
+fn get_state_machine_comp(path_string: String) -> ExternResult<(EntryHash, SensemakerEntry)> {
+    get_state_machine_generic(path_string, SM_COMP_TAG)
 }
 
-fn get_state_machine_generic(label: &str) -> ExternResult<(EntryHash, SensemakerEntry)> {
+fn get_state_machine_generic(path_string: String, label: &str) -> ExternResult<(EntryHash, SensemakerEntry)> {
     let cell_id = get_hub_cell_id(())?;
     match call(
         CallTargetCell::Other(cell_id),
         "hub".into(),
         "get_sensemaker_entry_by_path".into(),
         None,
-        (ANNOTATIONZ_PATH, label),
+        (path_string, label),
     )? {
         ZomeCallResponse::Ok(data) => {
             return Ok(data.decode()?);

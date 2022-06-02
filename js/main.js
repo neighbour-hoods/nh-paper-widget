@@ -76,8 +76,6 @@ const App = {
 
       for (var i = 0; i < labels.length; i++) {
         let label = labels[i];
-        let res = await this.zomeApi.get_sm_init(label);
-        console.log('res', res);
         this.sm_init_s[label] = await this.zomeApi.get_sm_init(label);
         console.log("sm_init_s", this.sm_init_s[label]);
         this.sm_comp_s[label] = await this.zomeApi.get_sm_comp(label);
@@ -88,7 +86,7 @@ const App = {
       console.log("sm_comp_s:", this.sm_comp_s);
     },
     async get_paperz() {
-      console.log("##### GETTING PAPERZ #####");
+      console.log("##### BEGIN GETTING PAPERZ #####");
       this.paperz = await this.zomeApi.get_all_paperz();
       console.log("got all paperz: ", this.paperz);
       // I think we can turn this into a tree structure using Path on the backend
@@ -113,7 +111,7 @@ const App = {
         this.paperz[index].annotationz = annotationz;
       });
       console.log("paperz: ", this.paperz);
-      console.log("##### DONE GETTING PAPERZ #####");
+      console.log("##### END GETTING PAPERZ #####");
     },
     // initialize sense maker state machine to
     async set_sm_init() {
