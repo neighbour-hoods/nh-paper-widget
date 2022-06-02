@@ -25,7 +25,8 @@
     "hc:pack-hub": "hc dna pack happs/hub && hc app pack happs/hub",
     "hc:run-paperz": "rm -rf .hc* && hc sandbox generate happs/paperz && hc sandbox -f=9000 run -l -p 9999",
     "hc:run-hub": "rm -rf .hc* && hc sandbox generate happs/hub && hc sandbox -f=8000 run -l -p 8888",
-    "hc:redo": "npm run hc:build && npm run hc:pack && npm run hc:run",
+    "hc:redo-paperz": "npm run hc:build-paperz && npm run hc:pack-paperz && npm run hc:run-paperz",
+    "hc:redo-hub": "npm run hc:build-hub && npm run hc:pack-hub && npm run hc:run-hub",
     "hc:pg": "npx @holochain-playground/cli ws://localhost:9000"
   },
   "author": "",
