@@ -61,7 +61,11 @@ const App = {
       return this.currentStatus === STATUS_FAILED;
     },
     cellId() {
-      return [this.dnaHash, this.agentPubKey];
+      if (this.dnaHash === null || this.agentPubKey === null) {
+        return null;
+      } else {
+        return [this.dnaHash, this.agentPubKey];
+      }
     }
   },
   methods: {
@@ -79,7 +83,7 @@ const App = {
       event.preventDefault();
       console.log('set!');
       const payload = (this.dnaHash, this.agentPubKey);
-      let hash = await this.zomeApi.set_hub_cellId(payload);
+      let hash = await this.zomeApi.set_hub_cell_id(payload);
       console.log("Cell id header hash: ", hash);
     },
     async get_sm_init_and_comp_s() {
@@ -99,7 +103,7 @@ const App = {
       console.log("sm_comp_s:", this.sm_comp_s);
     },
     async get_paperz() {
-      console.log("##### GETTING PAPPERZ #####");
+      console.log("##### GETTING PAPERZ #####");
       this.paperz = await this.zomeApi.get_all_paperz();
       console.log("got all paperz: ", this.paperz);
       // I think we can turn this into a tree structure using Path on the backend
@@ -124,7 +128,7 @@ const App = {
         this.paperz[index].annotationz = annotationz;
       });
       console.log("paperz: ", this.paperz);
-      console.log("##### DONE GETTING PAPPERZ #####");
+      console.log("##### DONE GETTING PAPERZ #####");
     },
     // initialize sense maker state machine to
     async set_sm_init() {
@@ -200,16 +204,20 @@ const App = {
     if (this.dnaHash === null || this.agentPubKey === null) {
       console.log('no cellId, fetching latest');
       try {
-      const result = await this.zomeApi.get_hub_cellId(); 
+      const result = await this.zomeApi.get_hub_cell_id();
       this.dnaHash = result.dna_hash;
       this.agentPubKey = result.agent_pubkey;
       } catch (e) {
         console.error(e.data);
       }
     }
-    console.log('cellId:' , this.cellId);
-    this.get_sm_init_and_comp_s();
-    this.get_paperz();
+    if (this.cellId === null) {
+      console.log('null cellId, cannot load resources');
+    } else {
+      console.log('got cellId: `', this.cellId, '`, loading resources');
+      this.get_sm_init_and_comp_s();
+      this.get_paperz();
+    }
   },
   mounted() {
     this.reset();
