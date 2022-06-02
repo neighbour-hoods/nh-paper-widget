@@ -2,6 +2,7 @@
 // https://github.com/fengyuanchen/vue-feather/issues/8
 import { createApp } from 'vue/dist/vue.esm-bundler';
 import { setupClient } from './hcClient';
+import { getHubCellData } from './hubClient';
 import ZomeApi from './zomeApi';
 
 const STATUS_INITIAL = 0, STATUS_SAVING = 1, STATUS_SUCCESS = 2, STATUS_FAILED = 3;
@@ -13,8 +14,6 @@ const App = {
       zomeApi: null,
       uploadError: null,
       currentStatus: null,
-      dnaHash: null,
-      agentPubKey: null,
       paperz: [],
       annotationz: [],
       sm_submit: {
@@ -59,13 +58,6 @@ const App = {
     },
     isFailed() {
       return this.currentStatus === STATUS_FAILED;
-    },
-    cellId() {
-      if (this.dnaHash === null || this.agentPubKey === null) {
-        return null;
-      } else {
-        return [this.dnaHash, this.agentPubKey];
-      }
     }
   },
   methods: {
@@ -79,13 +71,6 @@ const App = {
     //   localStorage.setItem('hcAdminPort', this.hcAdminPort);
     //   window.location.reload()
     // },
-    async handleCellIdSubmit(event) {
-      event.preventDefault();
-      console.log('set!');
-      const payload = (this.dnaHash, this.agentPubKey);
-      let hash = await this.zomeApi.set_hub_cell_id(payload);
-      console.log("Cell id header hash: ", hash);
-    },
     async get_sm_init_and_comp_s() {
       const labels = ["annotationz"];
 
@@ -201,23 +186,15 @@ const App = {
     let client = await setupClient();
     this.zomeApi = new ZomeApi(client);
     console.log('zomeApi: ', this.zomeApi);
-    if (this.dnaHash === null || this.agentPubKey === null) {
-      console.log('no cellId, fetching latest');
-      try {
-      const result = await this.zomeApi.get_hub_cell_id();
-      this.dnaHash = result.dna_hash;
-      this.agentPubKey = result.agent_pubkey;
-      } catch (e) {
-        console.error(e.data);
-      }
-    }
-    if (this.cellId === null) {
-      console.log('null cellId, cannot load resources');
-    } else {
-      console.log('got cellId: `', this.cellId, '`, loading resources');
-      this.get_sm_init_and_comp_s();
-      this.get_paperz();
-    }
+
+    let hubCellData = await getHubCellData();
+    console.log('hubClient cellData:',  hubCellData);
+    await this.zomeApi.set_hub_cell_id(hubCellData.cell_id);
+    let retrieved_cell_id = await this.zomeApi.get_hub_cell_id();
+    console.log('retrieved_cell_id: ', retrieved_cell_id);
+
+    this.get_sm_init_and_comp_s();
+    this.get_paperz();
   },
   mounted() {
     this.reset();
