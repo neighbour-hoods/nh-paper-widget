@@ -7,6 +7,14 @@ export default class ZomeApi {
     this.client = holochainCellClient
   }
 
+  async set_hub_cellId(payload) {
+    return await this.client.callZome('paperz_main_zome',  'set_hub_cell_id', payload);
+  }
+
+  async get_hub_cellId() {
+    return await this.client.callZome('paperz_main_zome',  'get_hub_cell_id');
+  }
+
   /// Plain holochain widget calls
   async get_all_paperz() {
     return await this.client.callZome('paperz_main_zome',  'get_all_papers');
@@ -26,12 +34,12 @@ export default class ZomeApi {
   }
 
   // Sensemaker bridge calls
-  async get_sm_init(label) {
-    return await this.client.callZome('paperz_main_zome', 'get_state_machine_init');
+  async get_sm_init(payload) {
+    return await this.client.callZome('paperz_main_zome', 'get_state_machine_init', payload);
   };
 
-  async get_sm_comp(label) {
-    return await this.client.callZome('paperz_main_zome',  'get_state_machine_comp');
+  async get_sm_comp(payload) {
+    return await this.client.callZome('paperz_main_zome',  'get_state_machine_comp', payload);
   }
 
   async get_sm_data_for_eh(payload) {

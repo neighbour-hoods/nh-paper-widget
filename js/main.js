@@ -13,6 +13,8 @@ const App = {
       zomeApi: null,
       uploadError: null,
       currentStatus: null,
+      dnaHash: null,
+      agentPubKey: null,
       paperz: [],
       annotationz: [],
       sm_submit: {
@@ -57,6 +59,9 @@ const App = {
     },
     isFailed() {
       return this.currentStatus === STATUS_FAILED;
+    },
+    cellId() {
+      return [this.dnaHash, this.agentPubKey];
     }
   },
   methods: {
@@ -65,10 +70,17 @@ const App = {
       this.currentStatus = STATUS_INITIAL;
       this.uploadError = null;
     },
-    async handleHcPortSubmit() {
-      localStorage.setItem('hcAppPort', this.hcAppPort);
-      localStorage.setItem('hcAdminPort', this.hcAdminPort);
-      window.location.reload()
+    // async handleHcPortSubmit() {
+    //   localStorage.setItem('hcAppPort', this.hcAppPort);
+    //   localStorage.setItem('hcAdminPort', this.hcAdminPort);
+    //   window.location.reload()
+    // },
+    async handleCellIdSubmit(event) {
+      event.preventDefault();
+      console.log('set!');
+      const payload = (this.dnaHash, this.agentPubKey);
+      let hash = await this.zomeApi.set_hub_cellId(payload);
+      console.log("Cell id header hash: ", hash);
     },
     async get_sm_init_and_comp_s() {
       const labels = ["annotationz"];
@@ -176,21 +188,26 @@ const App = {
     }
   },
 
-
 ////////////////////////////////////////////////////////////////////////////////
 // lifecycle hooks
 ////////////////////////////////////////////////////////////////////////////////
-  async beforeCreate () {
+  async beforeMount () {
+    console.log('beforeMount');
     console.log('BeforeCreate');
     let client = await setupClient();
     this.zomeApi = new ZomeApi(client);
     console.log('zomeApi: ', this.zomeApi);
-  },
-  async created () {
-    console.log('Created');
-    let client = await setupClient();
-    this.zomeApi = new ZomeApi(client);
-    console.log('zomeApi: ', this.zomeApi);
+    if (this.dnaHash === null || this.agentPubKey === null) {
+      console.log('no cellId, fetching latest');
+      try {
+      const result = await this.zomeApi.get_hub_cellId(); 
+      this.dnaHash = result.dna_hash;
+      this.agentPubKey = result.agent_pubkey;
+      } catch (e) {
+        console.error(e.data);
+      }
+    }
+    console.log('cellId:' , this.cellId);
     this.get_sm_init_and_comp_s();
     this.get_paperz();
   },

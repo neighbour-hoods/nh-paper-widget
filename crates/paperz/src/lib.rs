@@ -1,20 +1,37 @@
-use hdk::prelude::*;
+use hdk::prelude::{*, holo_hash::DnaHash};
 
 use common::{util, SensemakerEntry};
 
 pub const PAPER_TAG: &str = "paperz_paper";
 pub const ANN_TAG: &str = "annotationz";
+pub const HUB_CELL_ID_TAG: &str = "hub_cell_id";
 
-pub const PAPER_PATH: &str = "widget.paperz"; //.${entry_hash} => "sm_data"
-
-pub const SM_COMP_PATH: &str = "sensemaker.sm_comp";
-pub const SM_INIT_PATH: &str = "sensemaker.sm_init";
+pub const ANNOTATIONZ_PATH: &str = "widget.paperz.annotation";
+pub const SM_COMP_TAG: &str = "sm_comp";
+pub const SM_INIT_TAG: &str = "sm_init";
 
 entry_defs![
-    Path::entry_def(),
     Paper::entry_def(),
-    Annotation::entry_def()
+    Annotation::entry_def(),
+    HubCellId::entry_def(),
+    PathEntry::entry_def()
 ];
+
+#[derive(Clone)]
+#[hdk_entry]
+pub struct HubCellId {
+    // must include extension
+    pub dna_hash: DnaHash,
+    // encoded file bytes payload
+    // getting an error here on get_paperz. Deserialize("invalid type: byte array, expected u8")
+    pub agent_pubkey: AgentPubKey,
+}
+
+impl HubCellId {
+    fn to_cell_id(self) -> CellId {
+        CellId::new(self.dna_hash, self.agent_pubkey)
+    }
+}
 
 #[hdk_entry]
 pub struct Paper {
@@ -34,8 +51,54 @@ pub struct Annotation {
     pub what_it_should_say: String,
 }
 
+fn hub_cell_id_anchor() -> ExternResult<EntryHash> {
+    anchor("hub_cellId".into(), "".into())
+}
+
 fn paper_anchor() -> ExternResult<EntryHash> {
     anchor("paperz".into(), "".into())
+}
+
+#[hdk_extern]
+fn set_hub_cell_id((dna_hash, agent_pubkey): (DnaHash, AgentPubKey)) -> ExternResult<HeaderHash> {
+    let hub_cell_id: HubCellId = HubCellId {dna_hash, agent_pubkey};
+    let hub_cell_id_hh = create_entry(hub_cell_id.clone())?;
+    let hub_cell_id_eh = hash_entry(hub_cell_id)?;
+    create_link(
+        hub_cell_id_anchor()?,
+        hub_cell_id_eh,
+        LinkType(0),
+        LinkTag::new(HUB_CELL_ID_TAG),
+    )?;
+
+    Ok(hub_cell_id_hh)
+}
+
+#[hdk_extern]
+fn get_hub_cell_id(_:()) -> ExternResult<Option<CellId>> {
+    debug!("Getting hub cellId...");
+    match get_single_linked_entry()? {
+        Some(entryhash) => {
+            let hub_cell_id_entry: HubCellId =
+                util::try_get_and_convert(entryhash.clone(), GetOptions::content())?;
+            Ok(Some(hub_cell_id_entry.to_cell_id()))
+        }
+        None => Ok(None),
+    }
+}
+
+fn get_single_linked_entry(
+) -> ExternResult<Option<EntryHash>> {
+    let links = get_links(hub_cell_id_anchor()?, Some(LinkTag::new(HUB_CELL_ID_TAG)))?;
+    match links
+        .into_iter()
+        .max_by(|x, y| x.timestamp.cmp(&y.timestamp))
+    {
+        None => Ok(None),
+        Some(link) => Ok(Some(
+            link.target.into_entry_hash().expect("Should be an entry."),
+        )),
+    }
 }
 
 #[hdk_extern]
@@ -106,7 +169,7 @@ fn get_annotations_for_paper(
 }
 
 #[hdk_extern]
-fn create_annotation(annotation: Annotation) -> ExternResult<(EntryHash, HeaderHash)> {
+fn create_annotation((annotation, cell_id) : (Annotation, CellId)) -> ExternResult<(EntryHash, HeaderHash)> {
     let annotation_headerhash = create_entry(&annotation)?;
     let annotation_entryhash = hash_entry(&annotation)?;
     create_link(
@@ -124,7 +187,7 @@ fn create_annotation(annotation: Annotation) -> ExternResult<(EntryHash, HeaderH
 
     // this is a write interface between a widget and the sensemaker hub
     call(
-        CallTargetCell::Local,
+        CallTargetCell::Other(cell_id),
         "hub".into(),
         "create_sensemaker_entry".into(),
         None,
@@ -139,10 +202,10 @@ fn create_annotation(annotation: Annotation) -> ExternResult<(EntryHash, HeaderH
 */
 #[hdk_extern]
 fn get_state_machine_data(
-    (target_eh, opt_label): (EntryHash, Option<String>),
+    (target_eh, opt_label, cell_id): (EntryHash, Option<String>, CellId),
 ) -> ExternResult<Vec<(EntryHash, SensemakerEntry)>> {
     match call(
-        CallTargetCell::Local,
+        CallTargetCell::Other(cell_id),
         "hub".into(),
         "get_state_machine_data".into(),
         None,
@@ -155,42 +218,61 @@ fn get_state_machine_data(
     }
 }
 
-// // generic
-// fn _get_sensemaker_entry(
-//     path: String,
-// ) -> ExternResult<Option<(EntryHash, SensemakerEntry)>> {
-//     match call(
-//         None, // todo: get hub cell
-//         "hub".into(),
-//         "get_sensemaker_entry".into(),
-//         None,
-//         (path, link_tag))? {
-//             ZomeCallResponse::Ok(data) => {
-//                 return Ok(data.decode()?);
-//             },
-//             _ => todo!(),
-//         }
-// }
+#[hdk_extern]
+fn get_state_machine_init(
+    cell_id: CellId
+) -> ExternResult<(EntryHash, SensemakerEntry)> {
+    match call(
+        CallTargetCell::Other(cell_id),
+        "hub".into(),
+        "get_sensemaker_entry_by_path".into(),
+        None,
+        (ANNOTATIONZ_PATH, SM_INIT_TAG),
+    )? {
+        ZomeCallResponse::Ok(data) => {
+            return Ok(data.decode()?);
+        }
+        _ => todo!(),
+    }
+}
+
+#[hdk_extern]
+fn get_state_machine_comp(
+    cell_id: CellId
+) -> ExternResult<(EntryHash, SensemakerEntry)> {
+    match call(
+        CallTargetCell::Other(cell_id),
+        "hub".into(),
+        "get_sensemaker_entry_by_path".into(),
+        None,
+        (ANNOTATIONZ_PATH, SM_COMP_TAG),
+    )? {
+        ZomeCallResponse::Ok(data) => {
+            return Ok(data.decode()?);
+        }
+        _ => todo!(),
+    }
+}
 
 #[hdk_extern]
 /// set the sm_init state for the label to the `rep_lang` interpretation of `expr_str`
-pub fn set_state_machine_init(expr_str: String) -> ExternResult<bool> {
-    set_sensemaker_entry(SM_INIT_PATH.into(), expr_str)
+pub fn set_state_machine_init((expr_str, cell_id):(String, CellId)) -> ExternResult<bool> {
+    set_sensemaker_entry(ANNOTATIONZ_PATH.into(), SM_INIT_TAG.into(), expr_str, cell_id)
 }
 
 #[hdk_extern]
 /// set the sm_comp state for the label to the `rep_lang` interpretation of `expr_str`
-pub fn set_state_machine_comp(expr_str: String) -> ExternResult<bool> {
-    set_sensemaker_entry(SM_COMP_PATH.into(), expr_str)
+pub fn set_state_machine_comp((expr_str, cell_id): (String, CellId)) -> ExternResult<bool> {
+    set_sensemaker_entry(ANNOTATIONZ_PATH.into(), SM_COMP_TAG.into(), expr_str, cell_id)
 }
 
-fn set_sensemaker_entry(path: String, expr_str: String) -> ExternResult<bool> {
+fn set_sensemaker_entry(path_string: String, link_tag_string: String, expr_str: String, cell_id: CellId) -> ExternResult<bool> {
     match call(
-        CallTargetCell::Local,
+        CallTargetCell::Other(cell_id),
         "hub".into(),
         "set_sensemaker_entry".into(),
         None,
-        (path, expr_str),
+        (path_string, link_tag_string, expr_str),
     )? {
         ZomeCallResponse::Ok(_) => return Ok(true),
         _ => todo!(),
@@ -209,9 +291,9 @@ pub struct StepSmInput {
 /// both the state entry, and the action. update the link off of `target_eh` s.t. it points to the
 /// new state. this accomplishes "stepping" of the state machine.
 #[hdk_extern]
-fn step_sm(step_sm_input: StepSmInput) -> ExternResult<()> {
+fn step_sm((step_sm_input, cell_id) : (StepSmInput, CellId)) -> ExternResult<()> {
     match call(
-        CallTargetCell::Local,
+        CallTargetCell::Other(cell_id),
         "hub".into(),
         "step_sm".into(),
         None,
