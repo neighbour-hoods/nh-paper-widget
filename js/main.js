@@ -220,8 +220,16 @@ const App = {
     if (newCells.length == 2) {
       console.log('newCells == 2');
 
-      // TODO this equality check is not functioning
-      let difference = newCells.filter(x => !cells.includes(x));
+      let difference = newCells.filter(x => {
+        let keep = true;
+        cells.forEach(y => {
+          if (JSON.stringify(x) === JSON.stringify(y)) {
+            keep = false;
+          }
+        });
+        return keep;
+      });
+      console.log('difference: ', difference);
       if (difference.length == 1) {
         let hubCell = difference[0];
         console.log('setting hubCell: ', hubCell);
