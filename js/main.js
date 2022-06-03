@@ -211,7 +211,7 @@ const App = {
         dnas: [{ hash: hubDnaHash, role_id: 'thedna' }],
       });
       console.log('installedApp: ', installedApp);
-      const startApp1 = await admin.activateApp({ installed_app_id });
+      const startApp1 = await admin.enableApp({ installed_app_id });
       console.log('startApp1: ', startApp1);
     }
 
@@ -219,8 +219,15 @@ const App = {
     console.log('newCells: ', newCells);
     if (newCells.length == 2) {
       console.log('newCells == 2');
-      let res = await this.hcClient.set_hub_cell_id(newCells[1]);
-      console.log('set_hub_cell_id: ', res);
+
+      // TODO this equality check is not functioning
+      let difference = newCells.filter(x => !cells.includes(x));
+      if (difference.length == 1) {
+        let hubCell = difference[0];
+        console.log('setting hubCell: ', hubCell);
+        let res = await this.hcClient.set_hub_cell_id(hubCell);
+        console.log('set_hub_cell_id: ', res);
+      }
     }
 
     this.get_sm_init_and_comp_s();
