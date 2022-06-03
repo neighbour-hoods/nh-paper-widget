@@ -1,7 +1,7 @@
 // 🤷‍️, from \/
 // https://github.com/fengyuanchen/vue-feather/issues/8
 import { createApp } from 'vue/dist/vue.esm-bundler';
-import { setupClient } from './hcClient';
+import { HcClient } from './hcClient';
 
 const STATUS_INITIAL = 0, STATUS_SAVING = 1, STATUS_SUCCESS = 2, STATUS_FAILED = 3;
 
@@ -21,7 +21,6 @@ const App = {
     return {
       hcAppPort,
       hcAdminPort,
-      zomeApi: null,
       uploadError: null,
       currentStatus: null,
       hcClient: null,
@@ -87,9 +86,9 @@ const App = {
 
       for (var i = 0; i < labels.length; i++) {
         let label = labels[i];
-        this.sm_init_s[label] = await this.zomeApi.get_sm_init(label);
+        this.sm_init_s[label] = await this.hcClient.get_sm_init(label);
         console.log("sm_init_s", this.sm_init_s[label]);
-        this.sm_comp_s[label] = await this.zomeApi.get_sm_comp(label);
+        this.sm_comp_s[label] = await this.hcClient.get_sm_comp(label);
         console.log("sm_comp_s", this.sm_comp_s[label]);
       }
 
@@ -98,7 +97,7 @@ const App = {
     },
     async get_paperz() {
       console.log("##### BEGIN GETTING PAPERZ #####");
-      this.paperz = await this.zomeApi.get_all_paperz();
+      this.paperz = await this.hcClient.get_all_paperz();
       console.log("got all paperz: ", this.paperz);
       // I think we can turn this into a tree structure using Path on the backend
       // Will be a bit of legwork to get going but would remove the need for looped callback
@@ -107,14 +106,14 @@ const App = {
       console.log("Starting 1st async, for each paper, get annotations");
       await asyncForEach(this.paperz, async (ele, index) => {
         // for each paper, get annotations for paper
-        let annotationz = await this.zomeApi.get_annotations_for_paper(ele);
+        let annotationz = await this.hcClient.get_annotations_for_paper(ele);
         console.log("Annotationz for paper: ", annotationz);
 
         // for each annotation get all sensemaker data
         console.log("Starting 2nd async forEach, get sensemaker");
         await asyncForEach(annotationz, async (ele, index) => {
           console.log('getting sm_data');
-          let sm_data = await this.zomeApi.get_sm_data_for_eh([ele[0], null]);
+          let sm_data = await this.hcClient.get_sm_data_for_eh([ele[0], null]);
           console.log("sm_data: ", sm_data);
           annotationz[index].push(sm_data);
         });
@@ -127,13 +126,13 @@ const App = {
     // initialize sense maker state machine to
     async set_sm_init() {
       let payload = [this.sm_submit.sm_init.label, this.sm_submit.sm_init.expr_str];
-      let res = await this.zomeApi.set_sm_init_se_eh(payload);
+      let res = await this.hcClient.set_sm_init_se_eh(payload);
       console.log("set_sm_init res: ", res);
       this.get_sm_init_and_comp_s();
     },
     async set_sm_comp() {
       let payload = [this.sm_submit.sm_comp.label, this.sm_submit.sm_comp.expr_str];
-      let res = await this.zomeApi.set_sm_comp_se_eh(payload);
+      let res = await this.hcClient.set_sm_comp_se_eh(payload);
 
       console.log("set_sm_comp res: ", res);
       this.get_sm_init_and_comp_s();
@@ -148,7 +147,7 @@ const App = {
       };
       console.log(obj);
 
-      let hh = await this.zomeApi.upload_paper(obj);
+      let hh = await this.hcClient.upload_paper(obj);
       console.log('Paper HeaderHash: ', hh);
       this.currentStatus = STATUS_INITIAL;
 
@@ -163,7 +162,7 @@ const App = {
         what_it_should_say: evt.target.elements.what_it_should_say.value,
       };
 
-      let [eh, hh] = await this.zomeApi.create_annotation(obj);
+      let [eh, hh] = await this.hcClient.create_annotation(obj);
       console.log("handleCreateAnnotationSubmit:");
       console.log(eh);
       console.log(hh);
@@ -182,7 +181,7 @@ const App = {
       };
       console.log(obj);
 
-      await this.zomeApi.step_sm(obj);
+      await this.hcClient.step_sm(obj);
     }
   },
 
@@ -193,15 +192,16 @@ const App = {
     console.log('beforeMount');
     console.log('BeforeCreate');
 
-    this.hcClient = await setupClient(this.hcAppPort, this.hcAdminPort);
+    this.hcClient = await HcClient.initialize(this.hcAppPort, this.hcAdminPort);
     console.log('hcClient: ', this.hcClient);
 
     let admin = this.hcClient.adminWs;
-    let cells = admin.listCellIds();
+    let cells = await admin.listCellIds();
     console.log('cells: ', cells);
 
     const installed_app_id = 'hub';
     if (cells.length == 1) {
+      console.log('cells == 1');
       const hubDnaHash = await admin.registerDna({
         path: './happs/hub/hub.dna',
       });
@@ -210,7 +210,17 @@ const App = {
         agent_key: this.hcClient.agentPk,
         dnas: [{ hash: hubDnaHash, role_id: 'thedna' }],
       });
+      console.log('installedApp: ', installedApp);
       const startApp1 = await admin.activateApp({ installed_app_id });
+      console.log('startApp1: ', startApp1);
+    }
+
+    let newCells = await admin.listCellIds();
+    console.log('newCells: ', newCells);
+    if (newCells.length == 2) {
+      console.log('newCells == 2');
+      let res = await this.hcClient.set_hub_cell_id(newCells[1]);
+      console.log('set_hub_cell_id: ', res);
     }
 
     this.get_sm_init_and_comp_s();

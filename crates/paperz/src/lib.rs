@@ -5,6 +5,7 @@ use common::{util, SensemakerEntry};
 pub const PAPER_TAG: &str = "paperz_paper";
 pub const ANN_TAG: &str = "annotationz";
 pub const HUB_CELL_ID_TAG: &str = "hub_cell_id";
+pub const HUB_ZOME_NAME: &str = "hub_main";
 
 pub const ANNOTATIONZ_PATH: &str = "widget.paperz.annotation";
 pub const SM_COMP_TAG: &str = "sm_comp";
@@ -190,7 +191,7 @@ fn create_annotation(annotation: Annotation) -> ExternResult<(EntryHash, HeaderH
     // this is a write interface between a widget and the sensemaker hub
     call(
         CallTargetCell::Other(cell_id),
-        "hub".into(),
+        HUB_ZOME_NAME.into(),
         "create_sensemaker_entry".into(),
         None,
         annotation_entryhash.clone(),
@@ -209,7 +210,7 @@ fn get_state_machine_data(
     let cell_id = get_hub_cell_id(())?;
     match call(
         CallTargetCell::Other(cell_id),
-        "hub".into(),
+        HUB_ZOME_NAME.into(),
         "get_state_machine_data".into(),
         None,
         (target_eh, opt_label),
@@ -217,7 +218,10 @@ fn get_state_machine_data(
         ZomeCallResponse::Ok(data) => {
             return Ok(data.decode()?);
         }
-        _ => todo!(),
+        err => {
+            error!("ZomeCallResponse error: {:?}", err);
+            todo!();
+        }
     }
 }
 
@@ -235,7 +239,7 @@ fn get_state_machine_generic(path_string: String, label: &str) -> ExternResult<(
     let cell_id = get_hub_cell_id(())?;
     match call(
         CallTargetCell::Other(cell_id),
-        "hub".into(),
+        HUB_ZOME_NAME.into(),
         "get_sensemaker_entry_by_path".into(),
         None,
         (path_string, label),
@@ -243,33 +247,39 @@ fn get_state_machine_generic(path_string: String, label: &str) -> ExternResult<(
         ZomeCallResponse::Ok(data) => {
             return Ok(data.decode()?);
         }
-        _ => todo!(),
+        err => {
+            error!("ZomeCallResponse error: {:?}", err);
+            todo!();
+        }
     }
 }
 
 #[hdk_extern]
-/// set the sm_init state for the label to the `rep_lang` interpretation of `expr_str`
-pub fn set_state_machine_init(expr_str: String) -> ExternResult<bool> {
-    set_sensemaker_entry(ANNOTATIONZ_PATH.into(), SM_INIT_TAG.into(), expr_str)
+/// set the sm_init state for the path_string to the `rep_lang` interpretation of `expr_str`
+pub fn set_state_machine_init((path_string, expr_str): (String, String)) -> ExternResult<bool> {
+    set_sensemaker_entry(path_string.into(), SM_INIT_TAG.into(), expr_str)
 }
 
 #[hdk_extern]
-/// set the sm_comp state for the label to the `rep_lang` interpretation of `expr_str`
-pub fn set_state_machine_comp(expr_str: String) -> ExternResult<bool> {
-    set_sensemaker_entry(ANNOTATIONZ_PATH.into(), SM_COMP_TAG.into(), expr_str)
+/// set the sm_comp state for the path_string to the `rep_lang` interpretation of `expr_str`
+pub fn set_state_machine_comp((path_string, expr_str): (String, String)) -> ExternResult<bool> {
+    set_sensemaker_entry(path_string.into(), SM_COMP_TAG.into(), expr_str)
 }
 
 fn set_sensemaker_entry(path_string: String, link_tag_string: String, expr_str: String) -> ExternResult<bool> {
     let cell_id = get_hub_cell_id(())?;
     match call(
         CallTargetCell::Other(cell_id),
-        "hub".into(),
+        HUB_ZOME_NAME.into(),
         "set_sensemaker_entry".into(),
         None,
         (path_string, link_tag_string, expr_str),
     )? {
         ZomeCallResponse::Ok(_) => return Ok(true),
-        _ => todo!(),
+        err => {
+            error!("ZomeCallResponse error: {:?}", err);
+            todo!();
+        }
     }
 }
 
@@ -289,12 +299,15 @@ fn step_sm(step_sm_input: StepSmInput) -> ExternResult<()> {
     let cell_id = get_hub_cell_id(())?;
     match call(
         CallTargetCell::Other(cell_id),
-        "hub".into(),
+        HUB_ZOME_NAME.into(),
         "step_sm".into(),
         None,
         step_sm_input,
     )? {
         ZomeCallResponse::Ok(_) => return Ok(()),
-        _ => todo!(),
+        err => {
+            error!("ZomeCallResponse error: {:?}", err);
+            todo!();
+        }
     }
 }
