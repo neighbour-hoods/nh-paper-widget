@@ -2,18 +2,29 @@
 // https://github.com/fengyuanchen/vue-feather/issues/8
 import { createApp } from 'vue/dist/vue.esm-bundler';
 import { setupClient } from './hcClient';
-import { getHubCellData } from './hubClient';
-import ZomeApi from './zomeApi';
 
 const STATUS_INITIAL = 0, STATUS_SAVING = 1, STATUS_SUCCESS = 2, STATUS_FAILED = 3;
 
 const App = {
   name: 'paperz',
   data() {
+    let hcAppPort = localStorage.getItem('hcAppPort');
+    if (hcAppPort === null) {
+      hcAppPort = 9999;
+      localStorage.setItem('hcAppPort', hcAppPort);
+    }
+    let hcAdminPort = localStorage.getItem('hcAdminPort');
+    if (hcAdminPort === null) {
+      hcAdminPort = 9000;
+      localStorage.setItem('hcAdminPort', hcAdminPort);
+    }
     return {
+      hcAppPort,
+      hcAdminPort,
       zomeApi: null,
       uploadError: null,
       currentStatus: null,
+      hcClient: null,
       paperz: [],
       annotationz: [],
       sm_submit: {
@@ -66,11 +77,11 @@ const App = {
       this.currentStatus = STATUS_INITIAL;
       this.uploadError = null;
     },
-    // async handleHcPortSubmit() {
-    //   localStorage.setItem('hcAppPort', this.hcAppPort);
-    //   localStorage.setItem('hcAdminPort', this.hcAdminPort);
-    //   window.location.reload()
-    // },
+    async handleHcPortSubmit() {
+      localStorage.setItem('hcAppPort', this.hcAppPort);
+      localStorage.setItem('hcAdminPort', this.hcAdminPort);
+      window.location.reload()
+    },
     async get_sm_init_and_comp_s() {
       const labels = ["annotationz"];
 
@@ -181,15 +192,26 @@ const App = {
   async beforeMount () {
     console.log('beforeMount');
     console.log('BeforeCreate');
-    let client = await setupClient();
-    this.zomeApi = new ZomeApi(client);
-    console.log('zomeApi: ', this.zomeApi);
 
-    let hubCellData = await getHubCellData();
-    console.log('hubClient cellData:',  hubCellData);
-    await this.zomeApi.set_hub_cell_id(hubCellData.cell_id);
-    let retrieved_cell_id = await this.zomeApi.get_hub_cell_id();
-    console.log('retrieved_cell_id: ', retrieved_cell_id);
+    this.hcClient = await setupClient(this.hcAppPort, this.hcAdminPort);
+    console.log('hcClient: ', this.hcClient);
+
+    let admin = this.hcClient.adminWs;
+    let cells = admin.listCellIds();
+    console.log('cells: ', cells);
+
+    const installed_app_id = 'hub';
+    if (cells.length == 1) {
+      const hubDnaHash = await admin.registerDna({
+        path: './happs/hub/hub.dna',
+      });
+      const installedApp = await admin.installApp({
+        installed_app_id,
+        agent_key: this.hcClient.agentPk,
+        dnas: [{ hash: hubDnaHash, role_id: 'thedna' }],
+      });
+      const startApp1 = await admin.activateApp({ installed_app_id });
+    }
 
     this.get_sm_init_and_comp_s();
     this.get_paperz();

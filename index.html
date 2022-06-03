@@ -104,6 +104,19 @@
     </div>
   </div>
 
+  <details>
+    <summary>holochain ports</summary>
+    <div class='form_class'>
+      <form id="hc_ports" @submit.prevent="handleHcPortSubmit">
+        <input type="number" v-model="hcAppPort" required /> <br>
+
+        <input type="number" v-model="hcAdminPort" required /> <br>
+        <br>
+        <button type="submit">submit</button>
+      </form>
+    </div>
+  </details>
+
 </section>
 </body>
 
