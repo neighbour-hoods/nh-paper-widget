@@ -126,6 +126,7 @@ fn get_all_paperz(_: ()) -> ExternResult<Vec<(EntryHash, Paper)>> {
     debug!("Getting all paperz...");
     let paper_entry_links = get_links(paper_anchor()?, Some(LinkTag::new(PAPER_TAG)))?;
     let mut paperz: Vec<(EntryHash, Paper)> = Vec::new();
+    let mut opt_err = None;
     for lnk in paper_entry_links {
         let res: ExternResult<(EntryHash, Paper)> = {
             let paper_eh = lnk.target.into_entry_hash().expect("should be an Entry.");
@@ -136,10 +137,16 @@ fn get_all_paperz(_: ()) -> ExternResult<Vec<(EntryHash, Paper)>> {
 
         match res {
             Ok(tup) => paperz.push(tup),
-            Err(err) => debug!("err in fetching Paper: {}", err),
+            Err(err) => {
+                debug!("err in fetching Paper: {}", err);
+                opt_err = Some(err);
+            }
         }
     }
-    Ok(paperz)
+    match opt_err {
+        None => Ok(paperz),
+        Some(err) => Err(WasmError::Guest(format!("get_all_paperz: {:?}", err))),
+    }
 }
 
 fn annotation_anchor() -> ExternResult<EntryHash> {
@@ -220,7 +227,7 @@ fn get_state_machine_data(
         }
         err => {
             error!("ZomeCallResponse error: {:?}", err);
-            todo!();
+            Err(WasmError::Guest(format!("get_state_machine_data: {:?}", err)))
         }
     }
 }
@@ -249,7 +256,7 @@ fn get_state_machine_generic(path_string: String, label: &str) -> ExternResult<(
         }
         err => {
             error!("ZomeCallResponse error: {:?}", err);
-            todo!();
+            Err(WasmError::Guest(format!("get_state_machine_generic: {:?}", err)))
         }
     }
 }
@@ -278,7 +285,7 @@ fn set_sensemaker_entry(path_string: String, link_tag_string: String, expr_str: 
         ZomeCallResponse::Ok(_) => return Ok(true),
         err => {
             error!("ZomeCallResponse error: {:?}", err);
-            todo!();
+            Err(WasmError::Guest(format!("set_sensemaker_entry: {:?}", err)))
         }
     }
 }
@@ -307,7 +314,7 @@ fn step_sm(step_sm_input: StepSmInput) -> ExternResult<()> {
         ZomeCallResponse::Ok(_) => return Ok(()),
         err => {
             error!("ZomeCallResponse error: {:?}", err);
-            todo!();
+            Err(WasmError::Guest(format!("step_sm: {:?}", err)))
         }
     }
 }
