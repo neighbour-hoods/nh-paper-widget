@@ -213,29 +213,11 @@ const App = {
       console.log('installedApp: ', installedApp);
       const startApp1 = await admin.enableApp({ installed_app_id });
       console.log('startApp1: ', startApp1);
-    }
 
-    let newCells = await admin.listCellIds();
-    console.log('newCells: ', newCells);
-    if (newCells.length == 2) {
-      console.log('newCells == 2');
-
-      let difference = newCells.filter(x => {
-        let keep = true;
-        cells.forEach(y => {
-          if (JSON.stringify(x) === JSON.stringify(y)) {
-            keep = false;
-          }
-        });
-        return keep;
-      });
-      console.log('difference: ', difference);
-      if (difference.length == 1) {
-        let hubCell = difference[0];
-        console.log('setting hubCell: ', hubCell);
-        let res = await this.hcClient.set_hub_cell_id(hubCell);
-        console.log('set_hub_cell_id: ', res);
-      }
+      const hubCell = installedApp.cell_data[0].cell_id;
+      console.log('setting hubCell: ', hubCell);
+      let res = await this.hcClient.set_hub_cell_id(hubCell);
+      console.log('set_hub_cell_id: ', res);
     }
 
     this.get_sm_init_and_comp_s();
