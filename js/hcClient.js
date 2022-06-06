@@ -10,6 +10,7 @@ export class HcClient {
   static async initialize(appPort, adminPort) {
       let appWs = await AppWebsocket.connect('ws://localhost:' + appPort.toString());
       let adminWs = await AdminWebsocket.connect('ws://localhost:' + adminPort.toString());
+      // TODO don't regen this
       let agentPk = await adminWs.generateAgentPubKey();
       return new HcClient(adminWs, appWs, agentPk);
   }
