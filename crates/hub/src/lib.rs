@@ -12,7 +12,23 @@ entry_defs![Path::entry_def(), SensemakerEntry::entry_def()];
 
 pub const SM_DATA_TAG: &str = "sm_data";
 
+#[hdk_extern]
+pub fn init(_: ()) -> ExternResult<InitCallbackResult> {
+    let mut functions = GrantedFunctions::new();
+    functions.insert((zome_info()?.name, "create_sensemaker_entry".into()));
+    functions.insert((zome_info()?.name, "get_state_machine_data".into()));
+    functions.insert((zome_info()?.name, "get_sensemaker_entry_by_path".into()));
+    functions.insert((zome_info()?.name, "set_sensemaker_entry".into()));
 
+    let grant = ZomeCallCapGrant {
+        access: CapAccess::Unrestricted,
+        functions,
+        tag: "".into(),
+    };
+    create_cap_grant(grant)?;
+
+    Ok(InitCallbackResult::Pass)
+}
 
 #[hdk_extern]
 fn get_sensemaker_entry_by_path(
