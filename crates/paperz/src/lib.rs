@@ -1,4 +1,4 @@
-use hdk::prelude::{*, holo_hash::DnaHash};
+use hdk::prelude::{holo_hash::DnaHash, *};
 
 use common::{util, SensemakerEntry};
 
@@ -62,7 +62,10 @@ fn paper_anchor() -> ExternResult<EntryHash> {
 
 #[hdk_extern]
 fn set_hub_cell_id((dna_hash, agent_pubkey): (DnaHash, AgentPubKey)) -> ExternResult<HeaderHash> {
-    let hub_cell_id: HubCellId = HubCellId {dna_hash, agent_pubkey};
+    let hub_cell_id: HubCellId = HubCellId {
+        dna_hash,
+        agent_pubkey,
+    };
     let hub_cell_id_hh = create_entry(hub_cell_id.clone())?;
     let hub_cell_id_eh = hash_entry(hub_cell_id)?;
     create_link(
@@ -88,8 +91,7 @@ fn get_hub_cell_id(_: ()) -> ExternResult<CellId> {
     }
 }
 
-fn get_single_linked_entry(
-) -> ExternResult<Option<EntryHash>> {
+fn get_single_linked_entry() -> ExternResult<Option<EntryHash>> {
     let links = get_links(hub_cell_id_anchor()?, Some(LinkTag::new(HUB_CELL_ID_TAG)))?;
     match links
         .into_iter()
@@ -227,22 +229,32 @@ fn get_state_machine_data(
         }
         err => {
             error!("ZomeCallResponse error: {:?}", err);
-            Err(WasmError::Guest(format!("get_state_machine_data: {:?}", err)))
+            Err(WasmError::Guest(format!(
+                "get_state_machine_data: {:?}",
+                err
+            )))
         }
     }
 }
 
 #[hdk_extern]
-fn get_state_machine_init(path_string: String) -> ExternResult<Option<(EntryHash, SensemakerEntry)>> {
+fn get_state_machine_init(
+    path_string: String,
+) -> ExternResult<Option<(EntryHash, SensemakerEntry)>> {
     get_state_machine_generic(path_string, SM_INIT_TAG.into())
 }
 
 #[hdk_extern]
-fn get_state_machine_comp(path_string: String) -> ExternResult<Option<(EntryHash, SensemakerEntry)>> {
+fn get_state_machine_comp(
+    path_string: String,
+) -> ExternResult<Option<(EntryHash, SensemakerEntry)>> {
     get_state_machine_generic(path_string, SM_COMP_TAG.into())
 }
 
-fn get_state_machine_generic(path_string: String, label: String) -> ExternResult<Option<(EntryHash, SensemakerEntry)>> {
+fn get_state_machine_generic(
+    path_string: String,
+    label: String,
+) -> ExternResult<Option<(EntryHash, SensemakerEntry)>> {
     let cell_id = get_hub_cell_id(())?;
     match call(
         CallTargetCell::Other(cell_id),
@@ -256,7 +268,10 @@ fn get_state_machine_generic(path_string: String, label: String) -> ExternResult
         }
         err => {
             error!("ZomeCallResponse error: {:?}", err);
-            Err(WasmError::Guest(format!("get_state_machine_generic: {:?}", err)))
+            Err(WasmError::Guest(format!(
+                "get_state_machine_generic: {:?}",
+                err
+            )))
         }
     }
 }
@@ -273,7 +288,11 @@ pub fn set_state_machine_comp((path_string, expr_str): (String, String)) -> Exte
     set_sensemaker_entry(path_string.into(), SM_COMP_TAG.into(), expr_str)
 }
 
-fn set_sensemaker_entry(path_string: String, link_tag_string: String, expr_str: String) -> ExternResult<bool> {
+fn set_sensemaker_entry(
+    path_string: String,
+    link_tag_string: String,
+    expr_str: String,
+) -> ExternResult<bool> {
     let cell_id = get_hub_cell_id(())?;
     match call(
         CallTargetCell::Other(cell_id),

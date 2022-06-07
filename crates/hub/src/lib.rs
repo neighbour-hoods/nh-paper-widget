@@ -5,7 +5,7 @@ use hdk::prelude::*;
 // CreateSensemakerEntryInput, CreateSensemakerEntryInputParse, SchemeEntry,
 use common::{
     create_sensemaker_entry_parse, mk_application_se, util, CreateSensemakerEntryInputParse,
-    SensemakerEntry, SchemeEntry, SchemeRoot
+    SchemeEntry, SchemeRoot, SensemakerEntry,
 };
 
 entry_defs![
