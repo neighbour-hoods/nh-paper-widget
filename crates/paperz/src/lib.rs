@@ -8,8 +8,10 @@ pub const HUB_CELL_ID_TAG: &str = "hub_cell_id";
 pub const HUB_ZOME_NAME: &str = "hub_main";
 
 pub const ANNOTATIONZ_PATH: &str = "widget.paperz.annotation";
+// TODO when hub merges with sensemaker, put these in common lib.rs
 pub const SM_COMP_TAG: &str = "sm_comp";
 pub const SM_INIT_TAG: &str = "sm_init";
+pub const SM_DATA_TAG: &str = "sm_data";
 
 entry_defs![
     Paper::entry_def(),
@@ -196,14 +198,15 @@ fn create_annotation(annotation: Annotation) -> ExternResult<(EntryHash, HeaderH
     )?;
 
     let cell_id = get_hub_cell_id(())?;
-
-    // this is a write interface between a widget and the sensemaker hub
     call(
         CallTargetCell::Other(cell_id),
         HUB_ZOME_NAME.into(),
-        "create_sensemaker_entry".into(),
+        "initialize_sm_data".into(),
         None,
-        annotation_entryhash.clone(),
+        (
+            "widget.paperz.annotationz".to_string(),
+            annotation_entryhash.clone(),
+        ),
     )?;
 
     Ok((annotation_entryhash, annotation_headerhash))
@@ -213,16 +216,15 @@ fn create_annotation(annotation: Annotation) -> ExternResult<(EntryHash, HeaderH
 * What is a Vec of (EH, SE) tuples?
 */
 #[hdk_extern]
-fn get_state_machine_data(
-    (target_eh, opt_label): (EntryHash, Option<String>),
-) -> ExternResult<Vec<(EntryHash, SensemakerEntry)>> {
+fn get_state_machine_data(target_eh: EntryHash) -> ExternResult<Vec<(EntryHash, SensemakerEntry)>> {
+    let path_string = format!("widget.paperz.annotationz.{}", target_eh);
     let cell_id = get_hub_cell_id(())?;
     match call(
         CallTargetCell::Other(cell_id),
         HUB_ZOME_NAME.into(),
-        "get_state_machine_data".into(),
+        "get_sensemaker_entry_by_path".into(),
         None,
-        (target_eh, opt_label),
+        (path_string, SM_DATA_TAG.to_string()),
     )? {
         ZomeCallResponse::Ok(data) => {
             return Ok(data.decode()?);
@@ -297,7 +299,7 @@ fn set_sensemaker_entry(
     match call(
         CallTargetCell::Other(cell_id),
         HUB_ZOME_NAME.into(),
-        "set_sensemaker_entry".into(),
+        "set_sensemaker_entry_parse_rl_expr".into(),
         None,
         (path_string, link_tag_string, expr_str),
     )? {

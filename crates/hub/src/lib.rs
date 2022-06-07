@@ -16,15 +16,18 @@ entry_defs![
     SchemeRoot::entry_def()
 ];
 
+pub const SM_INIT_TAG: &str = "sm_init";
 pub const SM_DATA_TAG: &str = "sm_data";
 
 #[hdk_extern]
 pub fn init(_: ()) -> ExternResult<InitCallbackResult> {
     let mut functions = GrantedFunctions::new();
-    functions.insert((zome_info()?.name, "create_sensemaker_entry".into()));
-    functions.insert((zome_info()?.name, "get_state_machine_data".into()));
     functions.insert((zome_info()?.name, "get_sensemaker_entry_by_path".into()));
-    functions.insert((zome_info()?.name, "set_sensemaker_entry".into()));
+    functions.insert((
+        zome_info()?.name,
+        "set_sensemaker_entry_parse_rl_expr".into(),
+    ));
+    functions.insert((zome_info()?.name, "initialize_sm_data".into()));
 
     let grant = ZomeCallCapGrant {
         access: CapAccess::Unrestricted,
@@ -69,6 +72,22 @@ fn get_single_linked_entry(
 
 #[hdk_extern]
 fn set_sensemaker_entry(
+    (path_string, link_tag_string, target_eh): (String, String, EntryHash),
+) -> ExternResult<()> {
+    let path = Path::try_from(path_string)?;
+    path.ensure()?;
+    let anchor_hash = path.path_entry_hash()?;
+    create_link(
+        anchor_hash,
+        target_eh,
+        LinkType(0),
+        LinkTag::new(link_tag_string),
+    )?;
+    Ok(())
+}
+
+#[hdk_extern]
+fn set_sensemaker_entry_parse_rl_expr(
     (path_string, link_tag_string, expr_str): (String, String, String),
 ) -> ExternResult<()> {
     let (_, sensemaker_entry) = create_sensemaker_entry_parse(CreateSensemakerEntryInputParse {
@@ -77,16 +96,16 @@ fn set_sensemaker_entry(
     })?;
     let sensemaker_entryhash = hash_entry(sensemaker_entry)?;
 
-    let path = Path::try_from(path_string)?;
-    path.ensure()?;
-    let anchor_hash = path.path_entry_hash()?;
-    create_link(
-        anchor_hash,
-        sensemaker_entryhash,
-        LinkType(0),
-        LinkTag::new(link_tag_string),
-    )?;
-    Ok(())
+    set_sensemaker_entry((path_string, link_tag_string, sensemaker_entryhash))
+}
+
+#[hdk_extern]
+fn initialize_sm_data((path_string, target_eh): (String, EntryHash)) -> ExternResult<()> {
+    let target_path_string = format!("{}.{}", path_string, target_eh);
+    match get_single_linked_entry(path_string.clone(), SM_INIT_TAG.into())? {
+        None => Err(WasmError::Guest("initialize_sm_data: no sm_init".into())),
+        Some(init_eh) => set_sensemaker_entry((target_path_string, SM_DATA_TAG.into(), init_eh)),
+    }
 }
 
 /// for a given EntryHash, look for a state machine state linked to it with the label suffix

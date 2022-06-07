@@ -28,11 +28,11 @@ const App = {
       annotationz: [],
       sm_submit: {
         sm_init: {
-          label: "annotationz",
+          label: "widget.paperz.annotationz",
           expr_str: "0",
         },
         sm_comp: {
-          label: "annotationz",
+          label: "widget.paperz.annotationz",
           expr_str: `\
 (lam [st act]
   (if (== st 0)
@@ -83,7 +83,7 @@ const App = {
     },
     async get_sm_init_and_comp_s() {
       console.log('get_sm_init_and_comp_s...');
-      const labels = ["annotationz"];
+      const labels = ["widget.paperz.annotationz"];
 
       for (var i = 0; i < labels.length; i++) {
         let label = labels[i];
@@ -107,14 +107,14 @@ const App = {
       console.log("Starting 1st async, for each paper, get annotations");
       await asyncForEach(this.paperz, async (ele, index) => {
         // for each paper, get annotations for paper
-        let annotationz = await this.hcClient.get_annotations_for_paper(ele);
+        let annotationz = await this.hcClient.get_annotations_for_paper(ele[0]);
         console.log("Annotationz for paper: ", annotationz);
 
         // for each annotation get all sensemaker data
         console.log("Starting 2nd async forEach, get sensemaker");
         await asyncForEach(annotationz, async (ele, index) => {
           console.log('getting sm_data');
-          let sm_data = await this.hcClient.get_sm_data_for_eh([ele[0], null]);
+          let sm_data = await this.hcClient.get_sm_data_for_eh(ele[0]);
           console.log("sm_data: ", sm_data);
           annotationz[index].push(sm_data);
         });
@@ -162,6 +162,7 @@ const App = {
         what_it_says: evt.target.elements.what_it_says.value,
         what_it_should_say: evt.target.elements.what_it_should_say.value,
       };
+      console.log("handleCreateAnnotationSubmit: obj: ", obj);
 
       let [eh, hh] = await this.hcClient.create_annotation(obj);
       console.log("handleCreateAnnotationSubmit:");
@@ -177,7 +178,7 @@ const App = {
 
       let obj = {
         target_eh: ann_eh,
-        label: "annotationz",
+        label: "widget.paperz.annotationz",
         act: evt.target.elements.action.value,
       };
       console.log(obj);
@@ -220,8 +221,8 @@ const App = {
       console.log('set_hub_cell_id: ', res);
     }
 
-    this.get_sm_init_and_comp_s();
-    this.get_paperz();
+    await this.get_sm_init_and_comp_s();
+    await this.get_paperz();
   },
   mounted() {
     this.reset();
