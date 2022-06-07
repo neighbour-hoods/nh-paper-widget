@@ -20,7 +20,7 @@ export class HcClient {
       installed_app_id: 'test-app',
     });
     const cell_id = info.cell_data[0].cell_id;
-    await this.appWs.callZome({
+    return await this.appWs.callZome({
       cap: null,
       cell_id: cell_id,
       zome_name: 'paperz_main_zome',
