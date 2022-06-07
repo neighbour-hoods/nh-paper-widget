@@ -5,10 +5,16 @@ use hdk::prelude::*;
 // CreateSensemakerEntryInput, CreateSensemakerEntryInputParse, SchemeEntry,
 use common::{
     create_sensemaker_entry_parse, mk_application_se, util, CreateSensemakerEntryInputParse,
-    SensemakerEntry,
+    SensemakerEntry, SchemeEntry, SchemeRoot
 };
 
-entry_defs![Path::entry_def(), SensemakerEntry::entry_def()];
+entry_defs![
+    Path::entry_def(),
+    PathEntry::entry_def(),
+    SensemakerEntry::entry_def(),
+    SchemeEntry::entry_def(),
+    SchemeRoot::entry_def()
+];
 
 pub const SM_DATA_TAG: &str = "sm_data";
 

@@ -207,7 +207,7 @@ const App = {
       });
       const installedApp = await admin.installApp({
         installed_app_id,
-        agent_key: this.hcClient.agentPk,
+        agent_key: this.hcClient.cellId[1],
         dnas: [{ hash: hubDnaHash, role_id: 'thedna' }],
       });
       console.log('installedApp: ', installedApp);
@@ -246,9 +246,6 @@ function getBase64(file) {
 }
 
 async function asyncForEach(array, callback) {
-  if (array == undefined) {
-    return;
-  }
   for (let index = 0; index < array.length; index++) {
     await callback(array[index], index, array);
   }

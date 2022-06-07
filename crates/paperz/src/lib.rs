@@ -233,16 +233,16 @@ fn get_state_machine_data(
 }
 
 #[hdk_extern]
-fn get_state_machine_init(path_string: String) -> ExternResult<(EntryHash, SensemakerEntry)> {
+fn get_state_machine_init(path_string: String) -> ExternResult<Option<(EntryHash, SensemakerEntry)>> {
     get_state_machine_generic(path_string, SM_INIT_TAG.into())
 }
 
 #[hdk_extern]
-fn get_state_machine_comp(path_string: String) -> ExternResult<(EntryHash, SensemakerEntry)> {
+fn get_state_machine_comp(path_string: String) -> ExternResult<Option<(EntryHash, SensemakerEntry)>> {
     get_state_machine_generic(path_string, SM_COMP_TAG.into())
 }
 
-fn get_state_machine_generic(path_string: String, label: String) -> ExternResult<(EntryHash, SensemakerEntry)> {
+fn get_state_machine_generic(path_string: String, label: String) -> ExternResult<Option<(EntryHash, SensemakerEntry)>> {
     let cell_id = get_hub_cell_id(())?;
     match call(
         CallTargetCell::Other(cell_id),

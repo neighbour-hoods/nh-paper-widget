@@ -20,7 +20,7 @@ export class HcClient {
   }
 
   async callZome(fn_name, payload) {
-    await this.appWs.callZome({
+    return await this.appWs.callZome({
       cap: null,
       cell_id: this.cellId,
       zome_name: 'paperz_main_zome',
