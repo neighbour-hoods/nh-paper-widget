@@ -151,7 +151,7 @@ const App = {
       console.log('Paper HeaderHash: ', hh);
       this.currentStatus = STATUS_INITIAL;
 
-      this.get_paperz();
+      await this.get_paperz();
     },
     async handleCreateAnnotationSubmit(paper_ref, evt) {
       let obj = {
@@ -168,7 +168,7 @@ const App = {
       console.log(eh);
       console.log(hh);
 
-      this.get_paperz();
+      await this.get_paperz();
     },
     async handleStepSm(ann_eh, evt) {
       console.log("handleStepSm:");
@@ -181,8 +181,9 @@ const App = {
         evt.target.elements.action.value
       ];
       console.log(obj);
-
       await this.hcClient.step_sm(obj);
+
+      await this.get_paperz();
     }
   },
 
