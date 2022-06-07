@@ -27,12 +27,11 @@ const App = {
       paperz: [],
       annotationz: [],
       sm_submit: {
+        path_string: "widget.paperz.annotationz",
         sm_init: {
-          label: "widget.paperz.annotationz",
           expr_str: "0",
         },
         sm_comp: {
-          label: "widget.paperz.annotationz",
           expr_str: `\
 (lam [st act]
   (if (== st 0)
@@ -83,14 +82,14 @@ const App = {
     },
     async get_sm_init_and_comp_s() {
       console.log('get_sm_init_and_comp_s...');
-      const labels = ["widget.paperz.annotationz"];
+      const path_strings = ["widget.paperz.annotationz"];
 
-      for (var i = 0; i < labels.length; i++) {
-        let label = labels[i];
-        this.sm_init_s[label] = await this.hcClient.get_sm_init(label);
-        console.log("sm_init_s", this.sm_init_s[label]);
-        this.sm_comp_s[label] = await this.hcClient.get_sm_comp(label);
-        console.log("sm_comp_s", this.sm_comp_s[label]);
+      for (var i = 0; i < path_strings.length; i++) {
+        let path_string = path_strings[i];
+        this.sm_init_s[path_string] = await this.hcClient.get_sm_init(path_string);
+        console.log("sm_init_s", this.sm_init_s[path_string]);
+        this.sm_comp_s[path_string] = await this.hcClient.get_sm_comp(path_string);
+        console.log("sm_comp_s", this.sm_comp_s[path_string]);
       }
 
       console.log("sm_init_s: ", this.sm_init_s);
@@ -126,13 +125,13 @@ const App = {
     },
     // initialize sense maker state machine to
     async set_sm_init() {
-      let payload = [this.sm_submit.sm_init.label, this.sm_submit.sm_init.expr_str];
+      let payload = [this.sm_submit.path_string, this.sm_submit.sm_init.expr_str];
       let res = await this.hcClient.set_sm_init_se_eh(payload);
       console.log("set_sm_init res: ", res);
       this.get_sm_init_and_comp_s();
     },
     async set_sm_comp() {
-      let payload = [this.sm_submit.sm_comp.label, this.sm_submit.sm_comp.expr_str];
+      let payload = [this.sm_submit.path_string, this.sm_submit.sm_comp.expr_str];
       let res = await this.hcClient.set_sm_comp_se_eh(payload);
 
       console.log("set_sm_comp res: ", res);
@@ -176,11 +175,11 @@ const App = {
       console.log(ann_eh);
       console.log(evt);
 
-      let obj = {
-        target_eh: ann_eh,
-        label: "widget.paperz.annotationz",
-        act: evt.target.elements.action.value,
-      };
+      let obj = [
+        "widget.paperz.annotationz",
+        ann_eh,
+        evt.target.elements.action.value
+      ];
       console.log(obj);
 
       await this.hcClient.step_sm(obj);

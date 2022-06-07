@@ -255,7 +255,7 @@ fn get_state_machine_comp(
 
 fn get_state_machine_generic(
     path_string: String,
-    label: String,
+    link_tag_string: String,
 ) -> ExternResult<Option<(EntryHash, SensemakerEntry)>> {
     let cell_id = get_hub_cell_id(())?;
     match call(
@@ -263,7 +263,7 @@ fn get_state_machine_generic(
         HUB_ZOME_NAME.into(),
         "get_sensemaker_entry_by_path".into(),
         None,
-        (path_string, label),
+        (path_string, link_tag_string),
     )? {
         ZomeCallResponse::Ok(data) => {
             return Ok(data.decode()?);
@@ -311,26 +311,15 @@ fn set_sensemaker_entry(
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, SerializedBytes)]
-pub struct StepSmInput {
-    target_eh: EntryHash,
-    label: String,
-    act: String,
-}
-
-/// for a given EntryHash, look for a state machine state linked to it with the label suffix
-/// (link tag ~ `sm_data/$label`). look up the currently selected `sm_comp/$label` and apply that to
-/// both the state entry, and the action. update the link off of `target_eh` s.t. it points to the
-/// new state. this accomplishes "stepping" of the state machine.
 #[hdk_extern]
-fn step_sm(step_sm_input: StepSmInput) -> ExternResult<()> {
+fn step_sm((path_string, entry_hash, act): (String, EntryHash, String)) -> ExternResult<()> {
     let cell_id = get_hub_cell_id(())?;
     match call(
         CallTargetCell::Other(cell_id),
         HUB_ZOME_NAME.into(),
         "step_sm".into(),
         None,
-        step_sm_input,
+        (path_string, entry_hash, act),
     )? {
         ZomeCallResponse::Ok(_) => return Ok(()),
         err => {

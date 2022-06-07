@@ -26,7 +26,7 @@
     <div class="container">
       <h3 class='subtitle'>set sm_init</h3>
       <form id="sm_init" @submit.prevent="set_sm_init">
-        label: <input type="text" v-model="sm_submit.sm_init.label" required /> <br>
+        path_string: <input type="text" v-model="sm_submit.path_string" required disabled /> <br>
         expr_str: <textarea
           id="comp"
           cols="28"
@@ -42,7 +42,7 @@
     <div class="container">
       <h3 class='subtitle'>set sm_comp</h3>
       <form id="sm_comp" @submit.prevent="set_sm_comp">
-        label: <input type="text" v-model="sm_submit.sm_comp.label" required /> <br>
+        path_string: <input type="text" v-model="sm_submit.path_string" required disabled /> <br>
         expr_str: <textarea
           id="comp"
           cols="28"

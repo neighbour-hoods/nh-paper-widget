@@ -108,10 +108,6 @@ fn initialize_sm_data((path_string, target_eh): (String, EntryHash)) -> ExternRe
     }
 }
 
-/// for a given EntryHash, look for a state machine state linked to it with the label suffix
-/// (link tag ~ `sm_data/$label`). look up the currently selected `sm_comp/$label` and apply that to
-/// both the state entry, and the action. update the link off of `target_eh` s.t. it points to the
-/// new state. this accomplishes "stepping" of the state machine.
 #[hdk_extern]
 fn step_sm((path_string, entry_hash, act): (String, EntryHash, String)) -> ExternResult<()> {
     // path -> widget.paperz.annotationz => link tag -> sm_comp
