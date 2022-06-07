@@ -216,27 +216,11 @@ fn create_annotation(annotation: Annotation) -> ExternResult<(EntryHash, HeaderH
 * What is a Vec of (EH, SE) tuples?
 */
 #[hdk_extern]
-fn get_state_machine_data(target_eh: EntryHash) -> ExternResult<Vec<(EntryHash, SensemakerEntry)>> {
+fn get_state_machine_data(
+    target_eh: EntryHash,
+) -> ExternResult<Option<(EntryHash, SensemakerEntry)>> {
     let path_string = format!("widget.paperz.annotationz.{}", target_eh);
-    let cell_id = get_hub_cell_id(())?;
-    match call(
-        CallTargetCell::Other(cell_id),
-        HUB_ZOME_NAME.into(),
-        "get_sensemaker_entry_by_path".into(),
-        None,
-        (path_string, SM_DATA_TAG.to_string()),
-    )? {
-        ZomeCallResponse::Ok(data) => {
-            return Ok(data.decode()?);
-        }
-        err => {
-            error!("ZomeCallResponse error: {:?}", err);
-            Err(WasmError::Guest(format!(
-                "get_state_machine_data: {:?}",
-                err
-            )))
-        }
-    }
+    get_state_machine_generic(path_string, SM_DATA_TAG.to_string())
 }
 
 #[hdk_extern]
