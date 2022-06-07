@@ -136,6 +136,7 @@ fn step_sm((path_string, entry_hash, act): (String, EntryHash, String)) -> Exter
 
     let application_se = mk_application_se(vec![sm_comp_hh, sm_data_hh, act_se_hh])?;
     debug!("{:?}", application_se);
+    let _application_se_hh = create_entry(&application_se)?;
     let application_se_eh = hash_entry(&application_se)?;
     debug!("{:?}", application_se_eh);
     {
