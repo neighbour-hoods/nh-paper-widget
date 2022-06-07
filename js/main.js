@@ -82,6 +82,7 @@ const App = {
       window.location.reload()
     },
     async get_sm_init_and_comp_s() {
+      console.log('get_sm_init_and_comp_s...');
       const labels = ["annotationz"];
 
       for (var i = 0; i < labels.length; i++) {
@@ -190,7 +191,6 @@ const App = {
 ////////////////////////////////////////////////////////////////////////////////
   async beforeMount () {
     console.log('beforeMount');
-    console.log('BeforeCreate');
 
     this.hcClient = await HcClient.initialize(this.hcAppPort, this.hcAdminPort);
     console.log('hcClient: ', this.hcClient);
@@ -246,6 +246,9 @@ function getBase64(file) {
 }
 
 async function asyncForEach(array, callback) {
+  if (array == undefined) {
+    return;
+  }
   for (let index = 0; index < array.length; index++) {
     await callback(array[index], index, array);
   }

@@ -1,32 +1,32 @@
 import { AdminWebsocket, AppWebsocket, InstalledAppInfo } from '@holochain/client';
 
 export class HcClient {
-  constructor(adminWs, appWs, agentPk) {
+  constructor(adminWs, appWs, cellId) {
     this.adminWs = adminWs;
     this.appWs = appWs;
-    this.agentPk = agentPk;
+    this.cellId = cellId;
   }
 
   static async initialize(appPort, adminPort) {
       let appWs = await AppWebsocket.connect('ws://localhost:' + appPort.toString());
       let adminWs = await AdminWebsocket.connect('ws://localhost:' + adminPort.toString());
-      // TODO don't regen this
-      let agentPk = await adminWs.generateAgentPubKey();
-      return new HcClient(adminWs, appWs, agentPk);
+
+      let info = await appWs.appInfo({
+        installed_app_id: 'test-app',
+      });
+      console.log('info: ', info);
+      let cellId = info.cell_data[0].cell_id;
+      return new HcClient(adminWs, appWs, cellId);
   }
 
   async callZome(fn_name, payload) {
-    let info = await this.appWs.appInfo({
-      installed_app_id: 'test-app',
-    });
-    const cell_id = info.cell_data[0].cell_id;
     await this.appWs.callZome({
       cap: null,
-      cell_id: cell_id,
+      cell_id: this.cellId,
       zome_name: 'paperz_main_zome',
       fn_name,
       payload,
-      provenance: cell_id[1],
+      provenance: this.cellId[1],
     })
   }
 
