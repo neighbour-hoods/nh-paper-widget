@@ -59,10 +59,10 @@ $ nix develop --impure
 npm run hc:clean
 
 # terminal 1
-hc sandbox -f=9000 generate happs/memez -r=9999 network mdns
+hc sandbox -f=9000 generate happs/paperz -r=9999 network mdns
 
 # terminal 2
-hc sandbox -f=9008 generate happs/memez -r=9998 network mdns
+hc sandbox -f=9008 generate happs/paperz -r=9998 network mdns
 
 # terminal 3
 miniserve -p 8081 .

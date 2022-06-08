@@ -1,8 +1,8 @@
 manifest_version: "1"
-name: "memez"
+name: "paperz"
 uuid: ""
 properties: null
 zomes:
-  - name: memez_main_zome
-    bundled: "./memez.wasm"
+  - name: paperz_main_zome
+    bundled: "./paperz.wasm"
     #    properties:

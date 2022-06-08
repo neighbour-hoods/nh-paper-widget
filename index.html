@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="utf-8" />
-    <title>nh-mvp</title>
+    <title>nh-paper-widget</title>
     <script type="module" src="./dist/index.js"></script>
     <link rel="stylesheet" type="text/css" href="style.css">
 </head>
@@ -16,94 +16,106 @@
     </a>
 
     <div id="h-main">
-        <h1>Memeable Viable Product 1.0</h1>
+        <h1>nh-paper-widget 0.1</h1>
     </div>
     <img id="h-corner-r" src="imgs/corner-r.svg">
 </header>
 
-  <section id="general-wrapper">
+<section id="general-wrapper">
   <div id="app">
+    <div class="container">
+      <h3 class='subtitle'>set sm_init</h3>
+      <form id="sm_init" @submit.prevent="set_sm_init">
+        path_string: <input type="text" v-model="sm_submit.path_string" required disabled /> <br>
+        expr_str: <textarea
+          id="comp"
+          cols="28"
+          rows="10"
+          v-model="sm_submit.sm_init.expr_str"
+          required
+        ></textarea>
+        <br>
+        <button type="submit">submit</button>
+      </form>
+    </div>
+
+    <div class="container">
+      <h3 class='subtitle'>set sm_comp</h3>
+      <form id="sm_comp" @submit.prevent="set_sm_comp">
+        path_string: <input type="text" v-model="sm_submit.path_string" required disabled /> <br>
+        expr_str: <textarea
+          id="comp"
+          cols="28"
+          rows="10"
+          v-model="sm_submit.sm_comp.expr_str"
+          required
+        ></textarea>
+        <br>
+        <button type="submit">submit</button>
+      </form>
+    </div>
+
+    <div class="container">
+      <h3 class='subtitle'>sm_init_s</h3>
+      <p>{{sm_init_s}}</p>
+    </div>
+    <div class="container">
+      <h3 class='subtitle'>sm_comp_s</h3>
+      <p>{{sm_comp_s}}</p>
+    </div>
+
     <div class="container">
       <!--UPLOAD-->
       <form enctype="multipart/form-data" novalidate v-if="isInitial || isSaving">
-        <h3 class='subtitle'>upload memes</h3>
+        <h3 class='subtitle'>upload paper</h3>
         <div class="dropbox">
-          <input type="file" multiple :disabled="isSaving" @change="save($event.target.files);"
-            accept="image/*" class="input-file">
-            <p v-if="isInitial">
-              drag your meme(z) here to begin<br> or click to browse
-            </p>
-            <p v-if="isSaving">
-              uploading meme...
-            </p>
+          <input type="file" multiple :disabled="isSaving" accept=".pdf" class="input-file" @change="handlePaperSubmit($event);">
+          <p v-if="isInitial">
+            drag your paper here to begin<br> or click to browse
+          </p>
+          <p v-if="isSaving">
+            uploading paper...
+          </p>
         </div>
       </form>
-  </div>
 
-  <details>
-    <summary>custom score</summary>
-  <div>
-    <form id="custom_score" @submit.prevent="handleScoreCompSubmit">
-      <label for="name">name</label> <br>
-      <input type="name" id="name" v-model="scoreCompCreateForm.name" required />
-      <br>
-      <br>
-      <label for="comp">expression</label>
-      <br>
-      <textarea
-        id="comp"
-        cols="28"
-        rows="10"
-        v-model="scoreCompCreateForm.comp"
-        required
-      ></textarea>
-      <br>
-      <button type="submit">submit</button>
-    </form>
-  </div>
-  </details>
-
-  <div>
-    <label class="subtitle" for="score_comps">choose a score computation</label>
-    <div id="score_comps">
-      <label v-for="scoreComp in scoreComps">
-        <input
-          type="radio"
-          :checked="selectedScoreCompHash == scoreComp.nsc_eh"
-          @change="set_score_comp(scoreComp.nsc_eh)"
-        >
-        {{scoreComp.name}}
-        </br>
-      </label>
-    </div>
-  </div>
-
-  <button id="refresh" v-on:click="get_memez()">&#8635;</button>
-
-  <div class="container">
-    <div v-for="score_comp in scoreComps">
-        {{ score_comp.expr }}
-    </div>
-    <div v-for="meme in memez" class="uploaded-meme">
-        <img style="width: 100%;" v-bind:src="`${meme.meme_string}`">
-        Score: {{ meme.opt_score ?? "null" }}
-        <button v-on:click="react(meme.eh, 'lulz')">😂 {{count_reaction(meme.aggregated_reactions, 0)}}</button>
-        <button v-on:click="react(meme.eh, 'mbz')">🤯 {{count_reaction(meme.aggregated_reactions, 1)}}</button>
+    <div v-for="paper in paperz" class="uploaded-paper" style="border: 20px solid #969696;">
+      <!-- `paper` is a list w/ 2 elements. first is EntryHash. second is the object. -->
+      filename: {{ paper[1].filename }}
+      <!-- it would make more sense for the form to go below the iframe, but in that
+           configuration it won't render. I am not sure why. -->
+      <form id="create_annotation" @submit.prevent="handleCreateAnnotationSubmit(paper[0], $event)">
+        page #: <input name="page_num" type="number" required /> <br>
+        paragraph #: <input name="paragraph_num" type="number" required /> <br>
+        what it says: <input name="what_it_says" type="text" required /> <br>
+        what it should say: <input name="what_it_should_say" type="text" required /> <br>
+        <button type="submit">submit</button>
+      </form>
+      <div v-for="ann in paper.annotationz" style="border: 3px solid #800080;">
+        {{ann[1]}}
+        <br>
+        {{ann[2]}}
+        <form id="step_sm_annotation" @submit.prevent="handleStepSm(ann[0], $event)">
+          action: <input name="action" type="text" required /> <br>
+          <button type="submit">submit</button>
+        </form>
+      </div>
+      <iframe v-bind:src="`${paper[1].blob_str}`" width="100%" height="500px" />
     </div>
   </div>
 
   <details>
     <summary>holochain ports</summary>
-  <div class='form_class'>
-    <form id="hc_ports" @submit.prevent="handleHcPortSubmit">
-      <input type="number" v-model="hcAppPort" required /> <br>
+    <div class='form_class'>
+      <form id="hc_ports" @submit.prevent="handleHcPortSubmit">
+        <input type="number" v-model="hcAppPort" required /> <br>
 
-      <input type="number" v-model="hcAdminPort" required /> <br>
-      <br>
-      <button type="submit">submit</button>
-    </form>
-  </div>
-</details>
+        <input type="number" v-model="hcAdminPort" required /> <br>
+        <br>
+        <button type="submit">submit</button>
+      </form>
+    </div>
+  </details>
 
 </section>
 </body>
