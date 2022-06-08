@@ -1,68 +1,31 @@
 {
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
-    flake-utils.url = "github:numtide/flake-utils";
+    nh-nix-env.url = "github:neighbour-hoods/nh-nix-env";
     node2nix.url = "github:samuelludwig/node2nix";
-    holonix = {
-      url = "github:holochain/holonix";
-      flake = false;
-    };
-    rust-overlay.url = "github:oxalica/rust-overlay";
-    naersk.url = "github:nix-community/naersk";
-
-    # misc
-    flake-compat = {
-      url = "github:edolstra/flake-compat";
-      flake = false;
-    };
   };
 
-  outputs = { self, nixpkgs, flake-utils, node2nix, holonix, rust-overlay, naersk, ... }:
-    flake-utils.lib.eachDefaultSystem (system:
+  outputs = { nh-nix-env, node2nix, ... }:
+    let
+      flake-utils = nh-nix-env.metavalues.flake-utils;
+      nh-supported-systems = nh-nix-env.metavalues.nh-supported-systems;
+      rustVersion = nh-nix-env.metavalues.rustVersion;
+      naersk = nh-nix-env.metavalues.naersk;
+      wasmTarget = nh-nix-env.metavalues.wasmTarget;
+      holonixMain = nh-nix-env.metavalues.holonixMain;
+    in
+    flake-utils.lib.eachSystem nh-supported-systems (system:
       let
-        holonixMain = import holonix {
-          holochainVersionId = "v0_0_139";
-          include = {
-            rust = false;
-          };
-        };
-
-
-        pkgs = import nixpkgs {
-          inherit system;
-          overlays = [ rust-overlay.overlay ];
-        };
-
-        rustVersion = "1.60.0";
-
-        wasmTarget = "wasm32-unknown-unknown";
-
+        pkgs = nh-nix-env.values.${system}.pkgs;
       in
 
-      with pkgs;
       {
-        devShell = pkgs.mkShell {
-          inputsFrom = [
-            holonixMain.main
-          ];
-
-          buildInputs = [
-            holonixMain.pkgs.binaryen
-          ] ++ (with pkgs; [
+        devShell = nh-nix-env.shells.${system}.holochainDevShell {
+          extraBuildInputs = [
             node2nix.defaultPackage.${system}
-            nodejs
-            nodePackages.webpack
-            nodePackages.webpack-cli
-            miniserve
-            (rust-bin.stable.${rustVersion}.default.override {
-              targets = [ wasmTarget ];
-            })
-          ]);
-
-          shellHook = ''
-            export CARGO_HOME=~/.cargo
-            export CARGO_TARGET_DIR=target
-          '';
+            pkgs.nodejs
+            pkgs.nodePackages.webpack
+            pkgs.nodePackages.webpack-cli
+          ];
         };
 
         packages.frontend =
@@ -71,10 +34,10 @@
               inherit system pkgs;
             }).shell.nodeDependencies;
 
-            dist = stdenv.mkDerivation {
+            dist = pkgs.stdenv.mkDerivation {
               name = "nh-mvp_js_dist";
               src = ./.;
-              buildInputs = [
+              buildInputs = with pkgs; [
                 nodejs
                 nodePackages.webpack
                 nodePackages.webpack-cli
