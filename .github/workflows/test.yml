@@ -27,6 +27,14 @@ jobs:
       with:
         name: neighbourhoods
         authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
+    - name: ⚡ Cache
+      uses: actions/cache@v2
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          target
+        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
     - run: nix-shell --command "npm install && npm run hc:build-paperz && npm run hc:pack-paperz"
     - run: nix-shell --command "npm install && npm run hc:build-hub && npm run hc:pack-hub"
 
@@ -43,4 +51,12 @@ jobs:
       with:
         name: neighbourhoods
         authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
+    - name: ⚡ Cache
+      uses: actions/cache@v2
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          target
+        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
     - run: nix-shell --command "cargo fmt -- --check"
