@@ -2,7 +2,8 @@ use hdk::prelude::*;
 
 use common::{
     create_sensemaker_entry_parse, get_latest_path_entry, mk_application_se, util,
-    CreateSensemakerEntryInputParse, SchemeEntry, SchemeRoot, SensemakerEntry,
+    CreateSensemakerEntryInputParse, SchemeEntry, SchemeRoot, SensemakerEntry, SM_DATA_TAG,
+    SM_INIT_TAG,
 };
 
 entry_defs![
@@ -12,9 +13,6 @@ entry_defs![
     SchemeEntry::entry_def(),
     SchemeRoot::entry_def()
 ];
-
-pub const SM_INIT_TAG: &str = "sm_init";
-pub const SM_DATA_TAG: &str = "sm_data";
 
 #[hdk_extern]
 pub fn init(_: ()) -> ExternResult<InitCallbackResult> {
