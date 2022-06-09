@@ -85,7 +85,7 @@ fn set_sensemaker_entry_parse_rl_expr(
 #[hdk_extern]
 fn initialize_sm_data((path_string, target_eh): (String, EntryHash)) -> ExternResult<()> {
     let target_path_string = format!("{}.{}", path_string, target_eh);
-    match get_latest_path_entry(path_string.clone(), SM_INIT_TAG.into())? {
+    match get_latest_path_entry(path_string, SM_INIT_TAG.into())? {
         None => Err(WasmError::Guest("initialize_sm_data: no sm_init".into())),
         Some(init_eh) => set_sensemaker_entry((target_path_string, SM_DATA_TAG.into(), init_eh)),
     }

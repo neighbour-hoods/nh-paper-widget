@@ -179,9 +179,7 @@ fn get_state_machine_generic(
         None,
         (path_string, link_tag_string),
     )? {
-        ZomeCallResponse::Ok(data) => {
-            return Ok(data.decode()?);
-        }
+        ZomeCallResponse::Ok(data) => Ok(data.decode()?),
         err => {
             error!("ZomeCallResponse error: {:?}", err);
             Err(WasmError::Guest(format!(
@@ -195,13 +193,13 @@ fn get_state_machine_generic(
 #[hdk_extern]
 /// set the sm_init state for the path_string to the `rep_lang` interpretation of `expr_str`
 pub fn set_state_machine_init((path_string, expr_str): (String, String)) -> ExternResult<bool> {
-    set_sensemaker_entry(path_string.into(), SM_INIT_TAG.into(), expr_str)
+    set_sensemaker_entry(path_string, SM_INIT_TAG.into(), expr_str)
 }
 
 #[hdk_extern]
 /// set the sm_comp state for the path_string to the `rep_lang` interpretation of `expr_str`
 pub fn set_state_machine_comp((path_string, expr_str): (String, String)) -> ExternResult<bool> {
-    set_sensemaker_entry(path_string.into(), SM_COMP_TAG.into(), expr_str)
+    set_sensemaker_entry(path_string, SM_COMP_TAG.into(), expr_str)
 }
 
 fn set_sensemaker_entry(
@@ -217,7 +215,7 @@ fn set_sensemaker_entry(
         None,
         (path_string, link_tag_string, expr_str),
     )? {
-        ZomeCallResponse::Ok(_) => return Ok(true),
+        ZomeCallResponse::Ok(_) => Ok(true),
         err => {
             error!("ZomeCallResponse error: {:?}", err);
             Err(WasmError::Guest(format!("set_sensemaker_entry: {:?}", err)))
@@ -235,7 +233,7 @@ fn step_sm((path_string, entry_hash, act): (String, EntryHash, String)) -> Exter
         None,
         (path_string, entry_hash, act),
     )? {
-        ZomeCallResponse::Ok(_) => return Ok(()),
+        ZomeCallResponse::Ok(_) => Ok(()),
         err => {
             error!("ZomeCallResponse error: {:?}", err);
             Err(WasmError::Guest(format!("step_sm: {:?}", err)))
