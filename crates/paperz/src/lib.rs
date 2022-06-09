@@ -1,6 +1,9 @@
 use hdk::prelude::{holo_hash::DnaHash, *};
 
-use common::{util, SensemakerEntry, get_latest_linked_entry, hub_cell_id_fns, HUB_ZOME_NAME, HUB_CELL_ID_TAG, SM_INIT_TAG, SM_COMP_TAG, SM_DATA_TAG, hub_cell_id_anchor, HubCellId};
+use common::{
+    get_latest_linked_entry, hub_cell_id_anchor, hub_cell_id_fns, util, HubCellId, SensemakerEntry,
+    HUB_CELL_ID_TAG, HUB_ZOME_NAME, SM_COMP_TAG, SM_DATA_TAG, SM_INIT_TAG,
+};
 
 pub const PAPER_TAG: &str = "paperz_paper";
 pub const ANN_TAG: &str = "annotationz";
@@ -13,7 +16,7 @@ entry_defs![
     PathEntry::entry_def()
 ];
 
-hub_cell_id_fns!{}
+hub_cell_id_fns! {}
 
 #[hdk_entry]
 pub struct Paper {
@@ -133,10 +136,7 @@ fn create_annotation(annotation: Annotation) -> ExternResult<(EntryHash, HeaderH
         HUB_ZOME_NAME.into(),
         "initialize_sm_data".into(),
         None,
-        (
-            ANNOTATIONZ_PATH.to_string(),
-            annotation_entryhash.clone(),
-        ),
+        (ANNOTATIONZ_PATH.to_string(), annotation_entryhash.clone()),
     )?;
 
     Ok((annotation_entryhash, annotation_headerhash))
