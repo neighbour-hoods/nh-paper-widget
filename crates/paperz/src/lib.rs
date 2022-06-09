@@ -60,7 +60,7 @@ fn upload_paper(paper: Paper) -> ExternResult<HeaderHash> {
 
 #[hdk_extern]
 fn get_all_paperz(_: ()) -> ExternResult<Vec<(EntryHash, Paper)>> {
-    debug!("Getting all paperz...");
+    debug!("get_all_paperz: begin");
     let paper_entry_links = get_links(paper_anchor()?, Some(LinkTag::new(PAPER_TAG)))?;
     let mut paperz: Vec<(EntryHash, Paper)> = Vec::new();
     let mut opt_err = None;
@@ -94,15 +94,12 @@ fn annotation_anchor() -> ExternResult<EntryHash> {
 fn get_annotations_for_paper(
     paper_entry_hash: EntryHash,
 ) -> ExternResult<Vec<(EntryHash, Annotation)>> {
-    debug!("Getting annotations");
+    debug!("get_annotations_for_paper: begin");
     let mut annotations: Vec<(EntryHash, Annotation)> = Vec::new();
-    debug!("Created empty vector");
     for link in get_links(paper_entry_hash, Some(LinkTag::new(ANN_TAG)))? {
-        debug!("Here is a links: {:?}", link);
         let annotation_entry_hash = link.target.into_entry_hash().expect("should be an Entry.");
         match util::try_get_and_convert(annotation_entry_hash.clone(), GetOptions::content()) {
             Ok(annotation) => {
-                debug!("Annotation: {:?}", annotation);
                 annotations.push((annotation_entry_hash, annotation));
             }
             Err(err) => {
@@ -142,9 +139,6 @@ fn create_annotation(annotation: Annotation) -> ExternResult<(EntryHash, HeaderH
     Ok((annotation_entryhash, annotation_headerhash))
 }
 
-/**
-* What is a Vec of (EH, SE) tuples?
-*/
 #[hdk_extern]
 fn get_state_machine_data(
     target_eh: EntryHash,

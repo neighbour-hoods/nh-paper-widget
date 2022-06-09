@@ -1,8 +1,5 @@
 use hdk::prelude::*;
 
-// create_sensemaker_entry_full, get_sensemaker_entry,
-// get_sensemaker_entry_by_headerhash, pack_ses_into_list_se,
-// CreateSensemakerEntryInput, CreateSensemakerEntryInputParse, SchemeEntry,
 use common::{
     create_sensemaker_entry_parse, get_latest_path_entry, mk_application_se, util,
     CreateSensemakerEntryInputParse, SchemeEntry, SchemeRoot, SensemakerEntry,
@@ -93,16 +90,16 @@ fn initialize_sm_data((path_string, target_eh): (String, EntryHash)) -> ExternRe
 
 #[hdk_extern]
 fn step_sm((path_string, entry_hash, act): (String, EntryHash, String)) -> ExternResult<()> {
-    // path -> widget.paperz.annotationz => link tag -> sm_comp
     let sm_data_path: String = format!("{}.{}", path_string, entry_hash);
-    // 1. get sm_data
+
+    // fetch sm_data
     let (sm_data_eh, _sm_data_entry) =
         match get_sensemaker_entry_by_path((sm_data_path.clone(), "sm_data".into()))? {
             Some(pair) => Ok(pair),
             None => Err(WasmError::Guest("sm_data: invalid".into())),
         }?;
 
-    // 2. get sm_comp
+    // fetch sm_comp
     let (sm_comp_eh, _sm_comp_entry) =
         match get_sensemaker_entry_by_path((path_string, "sm_comp".into()))? {
             Some(pair) => Ok(pair),
@@ -112,11 +109,13 @@ fn step_sm((path_string, entry_hash, act): (String, EntryHash, String)) -> Exter
     let sm_comp_hh = util::get_hh(sm_comp_eh, GetOptions::content())?;
     let sm_data_hh = util::get_hh(sm_data_eh, GetOptions::content())?;
 
+    // create action SensemakerEntry
     let (act_se_hh, _act_se) = create_sensemaker_entry_parse(CreateSensemakerEntryInputParse {
         expr: act,
         args: vec![],
     })?;
 
+    // compose application SensemakerEntry & create it
     let application_se = mk_application_se(vec![sm_comp_hh, sm_data_hh, act_se_hh])?;
     debug!("{:?}", application_se);
     let _application_se_hh = create_entry(&application_se)?;
