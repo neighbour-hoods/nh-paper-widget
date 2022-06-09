@@ -79,6 +79,6 @@ export class HcClient {
   }
 
   async step_sm(payload) {
-    return await this.callZome('step_sm', payload);
+    return await this.callZome('step_sm_remote', payload);
   }
 }

@@ -218,7 +218,7 @@ fn set_sensemaker_entry(
 }
 
 #[hdk_extern]
-fn step_sm((path_string, entry_hash, act): (String, EntryHash, String)) -> ExternResult<()> {
+fn step_sm_remote((path_string, entry_hash, act): (String, EntryHash, String)) -> ExternResult<()> {
     let cell_id = get_hub_cell_id(())?;
     match call(
         CallTargetCell::Other(cell_id),
