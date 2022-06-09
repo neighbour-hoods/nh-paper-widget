@@ -1,32 +1,25 @@
 use hdk::prelude::{holo_hash::DnaHash, *};
 
-use common::{util, SensemakerEntry};
+use common::{util, SensemakerEntry, get_latest_linked_entry};
 
 pub const PAPER_TAG: &str = "paperz_paper";
 pub const ANN_TAG: &str = "annotationz";
+pub const ANNOTATIONZ_PATH: &str = "widget.paperz.annotationz";
+
+// TODO when hub merges with sensemaker, put these in common lib.rs
+// BEGIN HUB STUFF
 pub const HUB_CELL_ID_TAG: &str = "hub_cell_id";
 pub const HUB_ZOME_NAME: &str = "hub_main";
-
-pub const ANNOTATIONZ_PATH: &str = "widget.paperz.annotation";
-// TODO when hub merges with sensemaker, put these in common lib.rs
 pub const SM_COMP_TAG: &str = "sm_comp";
 pub const SM_INIT_TAG: &str = "sm_init";
 pub const SM_DATA_TAG: &str = "sm_data";
 
-entry_defs![
-    Paper::entry_def(),
-    Annotation::entry_def(),
-    HubCellId::entry_def(),
-    PathEntry::entry_def()
-];
-
-#[derive(Clone)]
 #[hdk_entry]
+#[derive(Clone)]
 pub struct HubCellId {
     // must include extension
     pub dna_hash: DnaHash,
     // encoded file bytes payload
-    // getting an error here on get_paperz. Deserialize("invalid type: byte array, expected u8")
     pub agent_pubkey: AgentPubKey,
 }
 
@@ -36,32 +29,11 @@ impl HubCellId {
     }
 }
 
-#[hdk_entry]
-pub struct Paper {
-    // must include extension
-    pub filename: String,
-    // encoded file bytes payload
-    // getting an error here on get_paperz. Deserialize("invalid type: byte array, expected u8")
-    pub blob_str: String,
-}
-
-#[hdk_entry]
-pub struct Annotation {
-    pub paper_ref: EntryHash, // should this be a HeaderHash? probably
-    pub page_num: u64,
-    pub paragraph_num: u64,
-    pub what_it_says: String,
-    pub what_it_should_say: String,
-}
-
 fn hub_cell_id_anchor() -> ExternResult<EntryHash> {
-    anchor("hub_cellId".into(), "".into())
+    anchor("hub_cell_id".into(), "".into())
 }
 
-fn paper_anchor() -> ExternResult<EntryHash> {
-    anchor("paperz".into(), "".into())
-}
-
+// TODO wrap this inside a macro so that the hdk_externs will register in the widget
 #[hdk_extern]
 fn set_hub_cell_id((dna_hash, agent_pubkey): (DnaHash, AgentPubKey)) -> ExternResult<HeaderHash> {
     let hub_cell_id: HubCellId = HubCellId {
@@ -82,8 +54,7 @@ fn set_hub_cell_id((dna_hash, agent_pubkey): (DnaHash, AgentPubKey)) -> ExternRe
 
 #[hdk_extern]
 fn get_hub_cell_id(_: ()) -> ExternResult<CellId> {
-    debug!("Getting hub cellId...");
-    match get_single_linked_entry()? {
+    match get_latest_linked_entry(hub_cell_id_anchor()?, HUB_CELL_ID_TAG.into())? {
         Some(entryhash) => {
             let hub_cell_id_entry: HubCellId =
                 util::try_get_and_convert(entryhash.clone(), GetOptions::content())?;
@@ -92,18 +63,34 @@ fn get_hub_cell_id(_: ()) -> ExternResult<CellId> {
         None => Err(WasmError::Guest("get_hub_cell_id: no cell_id".into())),
     }
 }
+// END HUB STUFF
 
-fn get_single_linked_entry() -> ExternResult<Option<EntryHash>> {
-    let links = get_links(hub_cell_id_anchor()?, Some(LinkTag::new(HUB_CELL_ID_TAG)))?;
-    match links
-        .into_iter()
-        .max_by(|x, y| x.timestamp.cmp(&y.timestamp))
-    {
-        None => Ok(None),
-        Some(link) => Ok(Some(
-            link.target.into_entry_hash().expect("Should be an entry."),
-        )),
-    }
+entry_defs![
+    Paper::entry_def(),
+    Annotation::entry_def(),
+    HubCellId::entry_def(),
+    PathEntry::entry_def()
+];
+
+#[hdk_entry]
+pub struct Paper {
+    // must include extension
+    pub filename: String,
+    // encoded file bytes payload
+    pub blob_str: String,
+}
+
+#[hdk_entry]
+pub struct Annotation {
+    pub paper_ref: EntryHash, // this should probably be a HeaderHash
+    pub page_num: u64,
+    pub paragraph_num: u64,
+    pub what_it_says: String,
+    pub what_it_should_say: String,
+}
+
+fn paper_anchor() -> ExternResult<EntryHash> {
+    anchor("paperz".into(), "".into())
 }
 
 #[hdk_extern]
@@ -204,7 +191,7 @@ fn create_annotation(annotation: Annotation) -> ExternResult<(EntryHash, HeaderH
         "initialize_sm_data".into(),
         None,
         (
-            "widget.paperz.annotationz".to_string(),
+            ANNOTATIONZ_PATH.to_string(),
             annotation_entryhash.clone(),
         ),
     )?;
@@ -219,7 +206,7 @@ fn create_annotation(annotation: Annotation) -> ExternResult<(EntryHash, HeaderH
 fn get_state_machine_data(
     target_eh: EntryHash,
 ) -> ExternResult<Option<(EntryHash, SensemakerEntry)>> {
-    let path_string = format!("widget.paperz.annotationz.{}", target_eh);
+    let path_string = format!("{}.{}", ANNOTATIONZ_PATH, target_eh);
     get_state_machine_generic(path_string, SM_DATA_TAG.to_string())
 }
 

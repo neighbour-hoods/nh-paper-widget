@@ -5,7 +5,7 @@ use hdk::prelude::*;
 // CreateSensemakerEntryInput, CreateSensemakerEntryInputParse, SchemeEntry,
 use common::{
     create_sensemaker_entry_parse, mk_application_se, util, CreateSensemakerEntryInputParse,
-    SchemeEntry, SchemeRoot, SensemakerEntry,
+    SchemeEntry, SchemeRoot, SensemakerEntry, get_latest_path_entry,
 };
 
 entry_defs![
@@ -43,30 +43,13 @@ pub fn init(_: ()) -> ExternResult<InitCallbackResult> {
 fn get_sensemaker_entry_by_path(
     (path_string, link_tag_string): (String, String),
 ) -> ExternResult<Option<(EntryHash, SensemakerEntry)>> {
-    match get_single_linked_entry(path_string, link_tag_string)? {
+    match get_latest_path_entry(path_string, link_tag_string)? {
         Some(entryhash) => {
             let sensemaker_entry =
                 util::try_get_and_convert(entryhash.clone(), GetOptions::content())?;
             Ok(Some((entryhash, sensemaker_entry)))
         }
         None => Ok(None),
-    }
-}
-
-fn get_single_linked_entry(
-    path_string: String,
-    link_tag_string: String,
-) -> ExternResult<Option<EntryHash>> {
-    let path = Path::from(path_string);
-    let links = get_links(path.path_entry_hash()?, Some(LinkTag::new(link_tag_string)))?;
-    match links
-        .into_iter()
-        .max_by(|x, y| x.timestamp.cmp(&y.timestamp))
-    {
-        None => Ok(None),
-        Some(link) => Ok(Some(
-            link.target.into_entry_hash().expect("Should be an entry."),
-        )),
     }
 }
 
@@ -102,7 +85,7 @@ fn set_sensemaker_entry_parse_rl_expr(
 #[hdk_extern]
 fn initialize_sm_data((path_string, target_eh): (String, EntryHash)) -> ExternResult<()> {
     let target_path_string = format!("{}.{}", path_string, target_eh);
-    match get_single_linked_entry(path_string.clone(), SM_INIT_TAG.into())? {
+    match get_latest_path_entry(path_string.clone(), SM_INIT_TAG.into())? {
         None => Err(WasmError::Guest("initialize_sm_data: no sm_init".into())),
         Some(init_eh) => set_sensemaker_entry((target_path_string, SM_DATA_TAG.into(), init_eh)),
     }

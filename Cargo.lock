@@ -101,7 +101,7 @@ dependencies = [
 [[package]]
 name = "common"
 version = "0.1.0"
-source = "git+https://github.com/neighbour-hoods/social_sensemaker.git?rev=27434917ed848eb5c9c29e5899c870d16baf8c8c#27434917ed848eb5c9c29e5899c870d16baf8c8c"
+source = "git+https://github.com/neighbour-hoods/social_sensemaker.git?rev=1b5e891ce5f185713caf256c65f25da8aa432541#1b5e891ce5f185713caf256c65f25da8aa432541"
 dependencies = [
  "combine",
  "hdk",
