@@ -1,69 +1,10 @@
 use hdk::prelude::{holo_hash::DnaHash, *};
 
-use common::{util, SensemakerEntry, get_latest_linked_entry};
+use common::{util, SensemakerEntry, get_latest_linked_entry, hub_cell_id_fns, HUB_ZOME_NAME, HUB_CELL_ID_TAG, SM_INIT_TAG, SM_COMP_TAG, SM_DATA_TAG, hub_cell_id_anchor, HubCellId};
 
 pub const PAPER_TAG: &str = "paperz_paper";
 pub const ANN_TAG: &str = "annotationz";
 pub const ANNOTATIONZ_PATH: &str = "widget.paperz.annotationz";
-
-// TODO when hub merges with sensemaker, put these in common lib.rs
-// BEGIN HUB STUFF
-pub const HUB_CELL_ID_TAG: &str = "hub_cell_id";
-pub const HUB_ZOME_NAME: &str = "hub_main";
-pub const SM_COMP_TAG: &str = "sm_comp";
-pub const SM_INIT_TAG: &str = "sm_init";
-pub const SM_DATA_TAG: &str = "sm_data";
-
-#[hdk_entry]
-#[derive(Clone)]
-pub struct HubCellId {
-    // must include extension
-    pub dna_hash: DnaHash,
-    // encoded file bytes payload
-    pub agent_pubkey: AgentPubKey,
-}
-
-impl HubCellId {
-    fn to_cell_id(self) -> CellId {
-        CellId::new(self.dna_hash, self.agent_pubkey)
-    }
-}
-
-fn hub_cell_id_anchor() -> ExternResult<EntryHash> {
-    anchor("hub_cell_id".into(), "".into())
-}
-
-// TODO wrap this inside a macro so that the hdk_externs will register in the widget
-#[hdk_extern]
-fn set_hub_cell_id((dna_hash, agent_pubkey): (DnaHash, AgentPubKey)) -> ExternResult<HeaderHash> {
-    let hub_cell_id: HubCellId = HubCellId {
-        dna_hash,
-        agent_pubkey,
-    };
-    let hub_cell_id_hh = create_entry(hub_cell_id.clone())?;
-    let hub_cell_id_eh = hash_entry(hub_cell_id)?;
-    create_link(
-        hub_cell_id_anchor()?,
-        hub_cell_id_eh,
-        LinkType(0),
-        LinkTag::new(HUB_CELL_ID_TAG),
-    )?;
-
-    Ok(hub_cell_id_hh)
-}
-
-#[hdk_extern]
-fn get_hub_cell_id(_: ()) -> ExternResult<CellId> {
-    match get_latest_linked_entry(hub_cell_id_anchor()?, HUB_CELL_ID_TAG.into())? {
-        Some(entryhash) => {
-            let hub_cell_id_entry: HubCellId =
-                util::try_get_and_convert(entryhash.clone(), GetOptions::content())?;
-            Ok(hub_cell_id_entry.to_cell_id())
-        }
-        None => Err(WasmError::Guest("get_hub_cell_id: no cell_id".into())),
-    }
-}
-// END HUB STUFF
 
 entry_defs![
     Paper::entry_def(),
@@ -71,6 +12,8 @@ entry_defs![
     HubCellId::entry_def(),
     PathEntry::entry_def()
 ];
+
+hub_cell_id_fns!{}
 
 #[hdk_entry]
 pub struct Paper {

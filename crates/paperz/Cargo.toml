@@ -10,7 +10,7 @@ hdk = "0.0.132"
 serde = "1"
 
 # common = { path = "../../../social_sensemaker/crates/common" }
-common = { git = "https://github.com/neighbour-hoods/social_sensemaker.git", rev = "1b5e891ce5f185713caf256c65f25da8aa432541" }
+common = { git = "https://github.com/neighbour-hoods/social_sensemaker.git", rev = "1d35933242593921c73a2e93a4e93a1d1ddb778c" }
 rep_lang_core = { git = "https://github.com/neighbour-hoods/rep_lang.git", rev = "bf44c3e80e0c98cfded6b7c1ba7caa38cb2449a8", features = ["hc"] }
 rep_lang_runtime = { git = "https://github.com/neighbour-hoods/rep_lang.git", rev = "bf44c3e80e0c98cfded6b7c1ba7caa38cb2449a8", features = ["hc"] }
 hub = { path = "../hub" }
