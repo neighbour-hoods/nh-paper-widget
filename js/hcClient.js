@@ -30,13 +30,13 @@ export class HcClient {
     })
   }
 
-  async set_hub_cell_id(payload) {
-    console.log('set_hub_cell_id: payload: ', payload);
-    return await this.callZome('set_hub_cell_id', payload);
+  async set_sensemaker_cell_id(payload) {
+    console.log('set_sensemaker_cell_id: payload: ', payload);
+    return await this.callZome('set_sensemaker_cell_id', payload);
   }
 
-  async get_hub_cell_id() {
-    return await this.callZome('get_hub_cell_id', null);
+  async get_sensemaker_cell_id() {
+    return await this.callZome('get_sensemaker_cell_id', null);
   }
 
   /// Plain holochain widget calls

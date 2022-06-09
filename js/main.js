@@ -200,25 +200,26 @@ const App = {
     let cells = await admin.listCellIds();
     console.log('cells: ', cells);
 
-    const installed_app_id = 'hub';
+    const installed_app_id = 'sensemaker';
     if (cells.length == 1) {
       console.log('cells == 1');
-      const hubDnaHash = await admin.registerDna({
-        path: './happs/hub/hub.dna',
+      const sensemakerDnaHash = await admin.registerDna({
+        // TODO source this from inside the repo
+        path: '../social_sensemaker/happs/social_sensemaker/social_sensemaker.dna',
       });
       const installedApp = await admin.installApp({
         installed_app_id,
         agent_key: this.hcClient.cellId[1],
-        dnas: [{ hash: hubDnaHash, role_id: 'thedna' }],
+        dnas: [{ hash: sensemakerDnaHash, role_id: 'thedna' }],
       });
       console.log('installedApp: ', installedApp);
       const startApp1 = await admin.enableApp({ installed_app_id });
       console.log('startApp1: ', startApp1);
 
-      const hubCell = installedApp.cell_data[0].cell_id;
-      console.log('setting hubCell: ', hubCell);
-      let res = await this.hcClient.set_hub_cell_id(hubCell);
-      console.log('set_hub_cell_id: ', res);
+      const sensemakerCell = installedApp.cell_data[0].cell_id;
+      console.log('setting sensemakerCell: ', sensemakerCell);
+      let res = await this.hcClient.set_sensemaker_cell_id(sensemakerCell);
+      console.log('set_sensemaker_cell_id: ', res);
     }
 
     await this.get_sm_init_and_comp_s();

@@ -1,8 +1,9 @@
 use hdk::prelude::{holo_hash::DnaHash, *};
 
 use common::{
-    get_latest_linked_entry, hub_cell_id_anchor, hub_cell_id_fns, util, HubCellId, SensemakerEntry,
-    HUB_CELL_ID_TAG, HUB_ZOME_NAME, SM_COMP_TAG, SM_DATA_TAG, SM_INIT_TAG,
+    get_latest_linked_entry, sensemaker_cell_id_anchor, sensemaker_cell_id_fns, util,
+    SensemakerCellId, SensemakerEntry, OWNER_TAG, SENSEMAKER_ZOME_NAME, SM_COMP_TAG, SM_DATA_TAG,
+    SM_INIT_TAG,
 };
 
 pub const PAPER_TAG: &str = "paperz_paper";
@@ -12,11 +13,11 @@ pub const ANNOTATIONZ_PATH: &str = "widget.paperz.annotationz";
 entry_defs![
     Paper::entry_def(),
     Annotation::entry_def(),
-    HubCellId::entry_def(),
+    SensemakerCellId::entry_def(),
     PathEntry::entry_def()
 ];
 
-hub_cell_id_fns! {}
+sensemaker_cell_id_fns! {}
 
 #[hdk_entry]
 pub struct Paper {
@@ -127,10 +128,10 @@ fn create_annotation(annotation: Annotation) -> ExternResult<(EntryHash, HeaderH
         LinkTag::new(ANN_TAG),
     )?;
 
-    let cell_id = get_hub_cell_id(())?;
+    let cell_id = get_sensemaker_cell_id(())?;
     call(
         CallTargetCell::Other(cell_id),
-        HUB_ZOME_NAME.into(),
+        SENSEMAKER_ZOME_NAME.into(),
         "initialize_sm_data".into(),
         None,
         (ANNOTATIONZ_PATH.to_string(), annotation_entryhash.clone()),
@@ -165,10 +166,10 @@ fn get_state_machine_generic(
     path_string: String,
     link_tag_string: String,
 ) -> ExternResult<Option<(EntryHash, SensemakerEntry)>> {
-    let cell_id = get_hub_cell_id(())?;
+    let cell_id = get_sensemaker_cell_id(())?;
     match call(
         CallTargetCell::Other(cell_id),
-        HUB_ZOME_NAME.into(),
+        SENSEMAKER_ZOME_NAME.into(),
         "get_sensemaker_entry_by_path".into(),
         None,
         (path_string, link_tag_string),
@@ -201,10 +202,10 @@ fn set_sensemaker_entry(
     link_tag_string: String,
     expr_str: String,
 ) -> ExternResult<bool> {
-    let cell_id = get_hub_cell_id(())?;
+    let cell_id = get_sensemaker_cell_id(())?;
     match call(
         CallTargetCell::Other(cell_id),
-        HUB_ZOME_NAME.into(),
+        SENSEMAKER_ZOME_NAME.into(),
         "set_sensemaker_entry_parse_rl_expr".into(),
         None,
         (path_string, link_tag_string, expr_str),
@@ -219,10 +220,10 @@ fn set_sensemaker_entry(
 
 #[hdk_extern]
 fn step_sm_remote((path_string, entry_hash, act): (String, EntryHash, String)) -> ExternResult<()> {
-    let cell_id = get_hub_cell_id(())?;
+    let cell_id = get_sensemaker_cell_id(())?;
     match call(
         CallTargetCell::Other(cell_id),
-        HUB_ZOME_NAME.into(),
+        SENSEMAKER_ZOME_NAME.into(),
         "step_sm".into(),
         None,
         (path_string, entry_hash, act),
