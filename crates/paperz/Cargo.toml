@@ -6,13 +6,13 @@ edition = "2018"
 license = "MIT"
 
 [dependencies]
-hdk = "0.0.132"
+hdk = "0.0.136"
 serde = "1"
 
 # common = { path = "../../../social_sensemaker/crates/common" }
-common = { git = "https://github.com/neighbour-hoods/social_sensemaker.git", rev = "9ca89cbcb49864d35cd98b930c5c2fe70af2e74f" }
-rep_lang_core = { git = "https://github.com/neighbour-hoods/rep_lang.git", rev = "bf44c3e80e0c98cfded6b7c1ba7caa38cb2449a8", features = ["hc"] }
-rep_lang_runtime = { git = "https://github.com/neighbour-hoods/rep_lang.git", rev = "bf44c3e80e0c98cfded6b7c1ba7caa38cb2449a8", features = ["hc"] }
+common = { git = "https://github.com/neighbour-hoods/social_sensemaker.git", rev = "e5fafe32fbc300bd7020907576d288af28d11f0d" }
+rep_lang_core = { git = "https://github.com/neighbour-hoods/rep_lang.git", rev = "779822b196f9073f5119864143bdc6d1ee6deed9", features = ["hc"] }
+rep_lang_runtime = { git = "https://github.com/neighbour-hoods/rep_lang.git", rev = "779822b196f9073f5119864143bdc6d1ee6deed9", features = ["hc"] }
 
 [lib]
 path = "src/lib.rs"

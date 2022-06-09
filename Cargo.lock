@@ -101,14 +101,14 @@ dependencies = [
 [[package]]
 name = "common"
 version = "0.1.0"
-source = "git+https://github.com/neighbour-hoods/social_sensemaker.git?rev=9ca89cbcb49864d35cd98b930c5c2fe70af2e74f#9ca89cbcb49864d35cd98b930c5c2fe70af2e74f"
+source = "git+https://github.com/neighbour-hoods/social_sensemaker.git?rev=e5fafe32fbc300bd7020907576d288af28d11f0d#e5fafe32fbc300bd7020907576d288af28d11f0d"
 dependencies = [
  "combine",
- "hdk",
+ "hdk 0.0.136",
  "pretty",
- "rep_lang_concrete_syntax",
- "rep_lang_core",
- "rep_lang_runtime",
+ "rep_lang_concrete_syntax 0.1.0 (git+https://github.com/neighbour-hoods/rep_lang.git?rev=bf44c3e80e0c98cfded6b7c1ba7caa38cb2449a8)",
+ "rep_lang_core 0.1.0 (git+https://github.com/neighbour-hoods/rep_lang.git?rev=bf44c3e80e0c98cfded6b7c1ba7caa38cb2449a8)",
+ "rep_lang_runtime 0.1.0 (git+https://github.com/neighbour-hoods/rep_lang.git?rev=bf44c3e80e0c98cfded6b7c1ba7caa38cb2449a8)",
  "serde",
 ]
 
@@ -208,11 +208,30 @@ version = "0.0.132"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c810d82d2e03e9cc6bef97c5f5612a2f0b6b0536959a8f42acb66b5d788d351e"
 dependencies = [
- "hdk_derive",
- "holo_hash",
- "holochain_deterministic_integrity",
+ "hdk_derive 0.0.33",
+ "holo_hash 0.0.25",
+ "holochain_deterministic_integrity 0.0.5",
  "holochain_wasmer_guest",
- "holochain_zome_types",
+ "holochain_zome_types 0.0.33",
+ "paste",
+ "serde",
+ "serde_bytes",
+ "thiserror",
+ "tracing",
+ "tracing-core",
+]
+
+[[package]]
+name = "hdk"
+version = "0.0.136"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "203d92a9c805095f55e4020914504c4b0b6c4455551838f8dad880405294b72d"
+dependencies = [
+ "hdk_derive 0.0.35",
+ "holo_hash 0.0.27",
+ "holochain_deterministic_integrity 0.0.8",
+ "holochain_wasmer_guest",
+ "holochain_zome_types 0.0.35",
  "paste",
  "serde",
  "serde_bytes",
@@ -227,7 +246,20 @@ version = "0.0.33"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b1aee6278daf1838c0572d2c24c33a2b117836f04aea0afacacf74beaa8b3ea4"
 dependencies = [
- "holochain_integrity_types",
+ "holochain_integrity_types 0.0.5",
+ "paste",
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
+name = "hdk_derive"
+version = "0.0.35"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3b4de645eee248c529ed2079003ef8d46c0377523ab51e8dde0605a868f48ed3"
+dependencies = [
+ "holochain_integrity_types 0.0.7",
  "paste",
  "proc-macro2",
  "quote",
@@ -248,18 +280,48 @@ dependencies = [
 ]
 
 [[package]]
+name = "holo_hash"
+version = "0.0.27"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8a26d28040245acbfc9b4960926cb7c07a2788f8713e6ef1b28e01bd5d1e2734"
+dependencies = [
+ "holochain_serialized_bytes",
+ "kitsune_p2p_dht_arc",
+ "serde",
+ "serde_bytes",
+ "thiserror",
+]
+
+[[package]]
 name = "holochain_deterministic_integrity"
 version = "0.0.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "214a07c6c8292a004f6009e6361504fef0d4ffc10467fcde3a9242559a2af4f9"
 dependencies = [
- "hdk_derive",
- "holo_hash",
- "holochain_integrity_types",
+ "hdk_derive 0.0.33",
+ "holo_hash 0.0.25",
+ "holochain_integrity_types 0.0.5",
  "holochain_wasmer_guest",
  "paste",
  "serde",
  "serde_bytes",
+]
+
+[[package]]
+name = "holochain_deterministic_integrity"
+version = "0.0.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7646630f2cded1e5c67f5acf258615e19afb8af632b87b86a6e1528907696df3"
+dependencies = [
+ "hdk_derive 0.0.35",
+ "holo_hash 0.0.27",
+ "holochain_integrity_types 0.0.7",
+ "holochain_wasmer_guest",
+ "paste",
+ "serde",
+ "serde_bytes",
+ "tracing",
+ "tracing-core",
 ]
 
 [[package]]
@@ -268,7 +330,22 @@ version = "0.0.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d6aa5a3f796a046e91aca097cb426442e60f0af3e2ed84a434c8d58c73cbd704"
 dependencies = [
- "holo_hash",
+ "holo_hash 0.0.25",
+ "holochain_serialized_bytes",
+ "kitsune_p2p_timestamp",
+ "serde",
+ "serde_bytes",
+ "subtle",
+ "tracing",
+]
+
+[[package]]
+name = "holochain_integrity_types"
+version = "0.0.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a0ecc9e05ed493a30298d5d05fb65fbc3d14f211aabaa466388368f78490405f"
+dependencies = [
+ "holo_hash 0.0.27",
  "holochain_serialized_bytes",
  "kitsune_p2p_timestamp",
  "serde",
@@ -333,8 +410,27 @@ version = "0.0.33"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2aef979eec3256a1b50aa88ea41507b389378b17fbc3bdec251af0b1025540ab"
 dependencies = [
- "holo_hash",
- "holochain_integrity_types",
+ "holo_hash 0.0.25",
+ "holochain_integrity_types 0.0.5",
+ "holochain_serialized_bytes",
+ "holochain_wasmer_common",
+ "kitsune_p2p_timestamp",
+ "paste",
+ "serde",
+ "serde_bytes",
+ "subtle",
+ "thiserror",
+ "tracing",
+]
+
+[[package]]
+name = "holochain_zome_types"
+version = "0.0.35"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "015444f90fdef25867210eb8b672089eb6a567c25156c20ddc1c0a9277b5a0e0"
+dependencies = [
+ "holo_hash 0.0.27",
+ "holochain_integrity_types 0.0.7",
  "holochain_serialized_bytes",
  "holochain_wasmer_common",
  "kitsune_p2p_timestamp",
@@ -479,9 +575,9 @@ name = "paperz"
 version = "0.1.0"
 dependencies = [
  "common",
- "hdk",
- "rep_lang_core",
- "rep_lang_runtime",
+ "hdk 0.0.136",
+ "rep_lang_core 0.1.0 (git+https://github.com/neighbour-hoods/rep_lang.git?rev=779822b196f9073f5119864143bdc6d1ee6deed9)",
+ "rep_lang_runtime 0.1.0 (git+https://github.com/neighbour-hoods/rep_lang.git?rev=779822b196f9073f5119864143bdc6d1ee6deed9)",
  "serde",
 ]
 
@@ -648,13 +744,37 @@ checksum = "f497285884f3fcff424ffc933e56d7cbca511def0c9831a7f9b5f6153e3cc89b"
 [[package]]
 name = "rep_lang_concrete_syntax"
 version = "0.1.0"
+source = "git+https://github.com/neighbour-hoods/rep_lang.git?rev=779822b196f9073f5119864143bdc6d1ee6deed9#779822b196f9073f5119864143bdc6d1ee6deed9"
+dependencies = [
+ "combine",
+ "pretty",
+ "quickcheck",
+ "rand",
+ "rep_lang_core 0.1.0 (git+https://github.com/neighbour-hoods/rep_lang.git?rev=779822b196f9073f5119864143bdc6d1ee6deed9)",
+]
+
+[[package]]
+name = "rep_lang_concrete_syntax"
+version = "0.1.0"
 source = "git+https://github.com/neighbour-hoods/rep_lang.git?rev=bf44c3e80e0c98cfded6b7c1ba7caa38cb2449a8#bf44c3e80e0c98cfded6b7c1ba7caa38cb2449a8"
 dependencies = [
  "combine",
  "pretty",
  "quickcheck",
  "rand",
- "rep_lang_core",
+ "rep_lang_core 0.1.0 (git+https://github.com/neighbour-hoods/rep_lang.git?rev=bf44c3e80e0c98cfded6b7c1ba7caa38cb2449a8)",
+]
+
+[[package]]
+name = "rep_lang_core"
+version = "0.1.0"
+source = "git+https://github.com/neighbour-hoods/rep_lang.git?rev=779822b196f9073f5119864143bdc6d1ee6deed9#779822b196f9073f5119864143bdc6d1ee6deed9"
+dependencies = [
+ "hdk 0.0.136",
+ "holochain_serialized_bytes_derive",
+ "quickcheck",
+ "rand",
+ "serde",
 ]
 
 [[package]]
@@ -662,10 +782,26 @@ name = "rep_lang_core"
 version = "0.1.0"
 source = "git+https://github.com/neighbour-hoods/rep_lang.git?rev=bf44c3e80e0c98cfded6b7c1ba7caa38cb2449a8#bf44c3e80e0c98cfded6b7c1ba7caa38cb2449a8"
 dependencies = [
- "hdk",
+ "hdk 0.0.132",
  "holochain_serialized_bytes_derive",
  "quickcheck",
  "rand",
+ "serde",
+]
+
+[[package]]
+name = "rep_lang_runtime"
+version = "0.1.0"
+source = "git+https://github.com/neighbour-hoods/rep_lang.git?rev=779822b196f9073f5119864143bdc6d1ee6deed9#779822b196f9073f5119864143bdc6d1ee6deed9"
+dependencies = [
+ "byteorder",
+ "combine",
+ "hdk 0.0.136",
+ "holochain_serialized_bytes_derive",
+ "pretty",
+ "rep_lang_concrete_syntax 0.1.0 (git+https://github.com/neighbour-hoods/rep_lang.git?rev=779822b196f9073f5119864143bdc6d1ee6deed9)",
+ "rep_lang_core 0.1.0 (git+https://github.com/neighbour-hoods/rep_lang.git?rev=779822b196f9073f5119864143bdc6d1ee6deed9)",
+ "rustyline",
  "serde",
 ]
 
@@ -676,11 +812,11 @@ source = "git+https://github.com/neighbour-hoods/rep_lang.git?rev=bf44c3e80e0c98
 dependencies = [
  "byteorder",
  "combine",
- "hdk",
+ "hdk 0.0.132",
  "holochain_serialized_bytes_derive",
  "pretty",
- "rep_lang_concrete_syntax",
- "rep_lang_core",
+ "rep_lang_concrete_syntax 0.1.0 (git+https://github.com/neighbour-hoods/rep_lang.git?rev=bf44c3e80e0c98cfded6b7c1ba7caa38cb2449a8)",
+ "rep_lang_core 0.1.0 (git+https://github.com/neighbour-hoods/rep_lang.git?rev=bf44c3e80e0c98cfded6b7c1ba7caa38cb2449a8)",
  "rustyline",
  "serde",
 ]
