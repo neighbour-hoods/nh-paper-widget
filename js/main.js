@@ -86,9 +86,9 @@ const App = {
 
       for (var i = 0; i < path_strings.length; i++) {
         let path_string = path_strings[i];
-        this.sm_init_s[path_string] = await this.hcClient.get_sm_init(path_string);
+        this.sm_init_s[path_string] = await this.hcClient.get_state_machine_init(path_string);
         console.log("sm_init_s", this.sm_init_s[path_string]);
-        this.sm_comp_s[path_string] = await this.hcClient.get_sm_comp(path_string);
+        this.sm_comp_s[path_string] = await this.hcClient.get_state_machine_comp(path_string);
         console.log("sm_comp_s", this.sm_comp_s[path_string]);
       }
 
@@ -113,7 +113,7 @@ const App = {
         console.log("Starting 2nd async forEach, get sensemaker");
         await asyncForEach(annotationz, async (ele, index) => {
           console.log('getting sm_data');
-          let sm_data = await this.hcClient.get_sm_data_for_eh(ele[0]);
+          let sm_data = await this.hcClient.get_state_machine_data(ele[0]);
           console.log("sm_data: ", sm_data);
           annotationz[index].push(sm_data);
         });
@@ -126,13 +126,13 @@ const App = {
     // initialize sense maker state machine to
     async set_sm_init() {
       let payload = [this.sm_submit.path_string, this.sm_submit.sm_init.expr_str];
-      let res = await this.hcClient.set_sm_init_se_eh(payload);
+      let res = await this.hcClient.set_state_machine_init(payload);
       console.log("set_sm_init res: ", res);
       this.get_sm_init_and_comp_s();
     },
     async set_sm_comp() {
       let payload = [this.sm_submit.path_string, this.sm_submit.sm_comp.expr_str];
-      let res = await this.hcClient.set_sm_comp_se_eh(payload);
+      let res = await this.hcClient.set_state_machine_comp(payload);
 
       console.log("set_sm_comp res: ", res);
       this.get_sm_init_and_comp_s();

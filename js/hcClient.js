@@ -58,23 +58,23 @@ export class HcClient {
   }
 
   // Sensemaker bridge calls
-  async get_sm_init(payload) {
+  async get_state_machine_init(payload) {
     return await this.callZome('get_state_machine_init', payload);
   };
 
-  async get_sm_comp(payload) {
+  async get_state_machine_comp(payload) {
     return await this.callZome('get_state_machine_comp', payload);
   }
 
-  async get_sm_data_for_eh(payload) {
+  async get_state_machine_data(payload) {
     return await this.callZome('get_state_machine_data', payload);
   }
 
-  async set_sm_comp_se_eh(payload) {
+  async set_state_machine_comp(payload) {
     return await this.callZome('set_state_machine_comp', payload);
   }
 
-  async set_sm_init_se_eh(payload) {
+  async set_state_machine_init(payload) {
     return await this.callZome('set_state_machine_init', payload);
   }
 
