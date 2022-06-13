@@ -113,6 +113,7 @@ const App = {
         console.log("Starting 2nd async forEach, get sensemaker");
         await asyncForEach(annotationz, async (ele, index) => {
           console.log('getting sm_data');
+          console.log('ele[0]: ', ele[0]);
           let sm_data = await this.hcClient.get_state_machine_data(ele[0]);
           console.log("sm_data: ", sm_data);
           annotationz[index].push(sm_data);

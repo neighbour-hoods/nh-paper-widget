@@ -3,7 +3,7 @@ use hdk::prelude::{holo_hash::DnaHash, *};
 use common::{
     get_latest_linked_entry, sensemaker_cell_id_anchor, sensemaker_cell_id_fns, util,
     SensemakerCellId, SensemakerEntry, OWNER_TAG, SENSEMAKER_ZOME_NAME, SM_COMP_TAG, SM_DATA_TAG,
-    SM_INIT_TAG,
+    SM_INIT_TAG, compose_sensemaker_path, LINK_TYPE,
 };
 
 pub const PAPER_TAG: &str = "paperz_paper";
@@ -144,8 +144,9 @@ fn create_annotation(annotation: Annotation) -> ExternResult<(EntryHash, HeaderH
 fn get_state_machine_data(
     target_eh: EntryHash,
 ) -> ExternResult<Option<(EntryHash, SensemakerEntry)>> {
-    let path_string = format!("{}.{}", ANNOTATIONZ_PATH, target_eh);
-    get_state_machine_generic(path_string, SM_DATA_TAG.to_string())
+    let path_string = compose_sensemaker_path(&ANNOTATIONZ_PATH.to_string(), &target_eh);
+    debug!("get_state_machine_data: path_string: {}", path_string);
+    get_state_machine_generic(path_string, SM_DATA_TAG.into())
 }
 
 #[hdk_extern]
@@ -174,7 +175,10 @@ fn get_state_machine_generic(
         None,
         (path_string, link_tag_string),
     )? {
-        ZomeCallResponse::Ok(data) => Ok(data.decode()?),
+        ZomeCallResponse::Ok(data) => {
+            debug!("get_state_machine_generic: data: {:?}", data);
+            Ok(data.decode()?)
+        }
         err => {
             error!("ZomeCallResponse error: {:?}", err);
             Err(WasmError::Guest(format!(
