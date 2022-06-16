@@ -1,9 +1,10 @@
 use hdk::prelude::{holo_hash::DnaHash, *};
 
 use common::{
-    get_latest_linked_entry, sensemaker_cell_id_anchor, sensemaker_cell_id_fns, util,
-    SensemakerCellId, SensemakerEntry, OWNER_TAG, SENSEMAKER_ZOME_NAME, SM_COMP_TAG, SM_DATA_TAG,
-    SM_INIT_TAG,
+    get_latest_linked_entry, remote_get_sensemaker_entry_by_path, remote_initialize_sm_data,
+    remote_set_sensemaker_entry_parse_rl_expr, remote_step_sm, sensemaker_cell_id_anchor,
+    sensemaker_cell_id_fns, util, SensemakerCellId, SensemakerEntry, OWNER_TAG, SM_COMP_TAG,
+    SM_DATA_TAG, SM_INIT_TAG,
 };
 
 pub const PAPER_TAG: &str = "paperz_paper";
@@ -129,13 +130,8 @@ fn create_annotation(annotation: Annotation) -> ExternResult<(EntryHash, HeaderH
     )?;
 
     let cell_id = get_sensemaker_cell_id(())?;
-    call(
-        CallTargetCell::Other(cell_id),
-        SENSEMAKER_ZOME_NAME.into(),
-        "initialize_sm_data".into(),
-        None,
-        (ANNOTATIONZ_PATH.to_string(), annotation_entryhash.clone()),
-    )?;
+    let payload = (ANNOTATIONZ_PATH.to_string(), annotation_entryhash.clone());
+    remote_initialize_sm_data((cell_id, None, payload))?;
 
     Ok((annotation_entryhash, annotation_headerhash))
 }
@@ -167,22 +163,7 @@ fn get_state_machine_generic(
     link_tag_string: String,
 ) -> ExternResult<Option<(EntryHash, SensemakerEntry)>> {
     let cell_id = get_sensemaker_cell_id(())?;
-    match call(
-        CallTargetCell::Other(cell_id),
-        SENSEMAKER_ZOME_NAME.into(),
-        "get_sensemaker_entry_by_path".into(),
-        None,
-        (path_string, link_tag_string),
-    )? {
-        ZomeCallResponse::Ok(data) => Ok(data.decode()?),
-        err => {
-            error!("ZomeCallResponse error: {:?}", err);
-            Err(WasmError::Guest(format!(
-                "get_state_machine_generic: {:?}",
-                err
-            )))
-        }
-    }
+    remote_get_sensemaker_entry_by_path((cell_id, None, (path_string, link_tag_string)))
 }
 
 #[hdk_extern]
@@ -203,35 +184,17 @@ fn set_sensemaker_entry(
     expr_str: String,
 ) -> ExternResult<bool> {
     let cell_id = get_sensemaker_cell_id(())?;
-    match call(
-        CallTargetCell::Other(cell_id),
-        SENSEMAKER_ZOME_NAME.into(),
-        "set_sensemaker_entry_parse_rl_expr".into(),
+    remote_set_sensemaker_entry_parse_rl_expr((
+        cell_id,
         None,
         (path_string, link_tag_string, expr_str),
-    )? {
-        ZomeCallResponse::Ok(_) => Ok(true),
-        err => {
-            error!("ZomeCallResponse error: {:?}", err);
-            Err(WasmError::Guest(format!("set_sensemaker_entry: {:?}", err)))
-        }
-    }
+    ))?;
+    Ok(true)
 }
 
 #[hdk_extern]
 fn step_sm_remote((path_string, entry_hash, act): (String, EntryHash, String)) -> ExternResult<()> {
     let cell_id = get_sensemaker_cell_id(())?;
-    match call(
-        CallTargetCell::Other(cell_id),
-        SENSEMAKER_ZOME_NAME.into(),
-        "step_sm".into(),
-        None,
-        (path_string, entry_hash, act),
-    )? {
-        ZomeCallResponse::Ok(_) => Ok(()),
-        err => {
-            error!("ZomeCallResponse error: {:?}", err);
-            Err(WasmError::Guest(format!("step_sm: {:?}", err)))
-        }
-    }
+    remote_step_sm((cell_id, None, (path_string, entry_hash, act)))?;
+    Ok(())
 }
