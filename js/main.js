@@ -5,6 +5,8 @@ import { HcClient } from './hcClient';
 
 const STATUS_INITIAL = 0, STATUS_SAVING = 1, STATUS_SUCCESS = 2, STATUS_FAILED = 3;
 
+const ANN_PATH_STRING = "widget.paperz.annotationz";
+
 const App = {
   name: 'paperz',
   data() {
@@ -27,7 +29,7 @@ const App = {
       paperz: [],
       annotationz: [],
       sm_submit: {
-        path_string: "widget.paperz.annotationz",
+        path_string: ANN_PATH_STRING,
         sm_init: {
           expr_str: "0",
         },
@@ -82,7 +84,7 @@ const App = {
     },
     async get_sm_init_and_comp_s() {
       console.log('get_sm_init_and_comp_s...');
-      const path_strings = ["widget.paperz.annotationz"];
+      const path_strings = [ANN_PATH_STRING];
 
       for (var i = 0; i < path_strings.length; i++) {
         let path_string = path_strings[i];
@@ -176,7 +178,7 @@ const App = {
       console.log(evt);
 
       let obj = [
-        "widget.paperz.annotationz",
+        ANN_PATH_STRING,
         ann_eh,
         evt.target.elements.action.value
       ];

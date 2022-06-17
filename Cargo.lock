@@ -101,7 +101,7 @@ dependencies = [
 [[package]]
 name = "common"
 version = "0.1.0"
-source = "git+https://github.com/neighbour-hoods/social_sensemaker.git?rev=865c3b54541d56ff1facb689fcac550f8d2e0463#865c3b54541d56ff1facb689fcac550f8d2e0463"
+source = "git+https://github.com/neighbour-hoods/social_sensemaker.git?rev=9ee3d3c805a401c450f5ebb0eae878bd2dd80c5b#9ee3d3c805a401c450f5ebb0eae878bd2dd80c5b"
 dependencies = [
  "combine",
  "hdk",
@@ -854,7 +854,7 @@ checksum = "f2dd574626839106c320a323308629dcb1acfc96e32a8cba364ddc61ac23ee83"
 [[package]]
 name = "social_sensemaker_macros"
 version = "0.1.0"
-source = "git+https://github.com/neighbour-hoods/social_sensemaker.git?rev=865c3b54541d56ff1facb689fcac550f8d2e0463#865c3b54541d56ff1facb689fcac550f8d2e0463"
+source = "git+https://github.com/neighbour-hoods/social_sensemaker.git?rev=9ee3d3c805a401c450f5ebb0eae878bd2dd80c5b#9ee3d3c805a401c450f5ebb0eae878bd2dd80c5b"
 dependencies = [
  "proc-macro2",
  "quote",

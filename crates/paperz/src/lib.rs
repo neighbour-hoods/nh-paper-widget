@@ -131,7 +131,7 @@ fn create_annotation(annotation: Annotation) -> ExternResult<(EntryHash, HeaderH
 
     let cell_id = get_sensemaker_cell_id(())?;
     let payload = (ANNOTATIONZ_PATH.to_string(), annotation_entryhash.clone());
-    remote_initialize_sm_data((cell_id, None, payload))?;
+    remote_initialize_sm_data(cell_id, None, payload)?;
 
     Ok((annotation_entryhash, annotation_headerhash))
 }
@@ -163,7 +163,7 @@ fn get_state_machine_generic(
     link_tag_string: String,
 ) -> ExternResult<Option<(EntryHash, SensemakerEntry)>> {
     let cell_id = get_sensemaker_cell_id(())?;
-    remote_get_sensemaker_entry_by_path((cell_id, None, (path_string, link_tag_string)))
+    remote_get_sensemaker_entry_by_path(cell_id, None, (path_string, link_tag_string))
 }
 
 #[hdk_extern]
@@ -184,17 +184,17 @@ fn set_sensemaker_entry(
     expr_str: String,
 ) -> ExternResult<bool> {
     let cell_id = get_sensemaker_cell_id(())?;
-    remote_set_sensemaker_entry_parse_rl_expr((
+    remote_set_sensemaker_entry_parse_rl_expr(
         cell_id,
         None,
         (path_string, link_tag_string, expr_str),
-    ))?;
+    )?;
     Ok(true)
 }
 
 #[hdk_extern]
 fn step_sm_remote((path_string, entry_hash, act): (String, EntryHash, String)) -> ExternResult<()> {
     let cell_id = get_sensemaker_cell_id(())?;
-    remote_step_sm((cell_id, None, (path_string, entry_hash, act)))?;
+    remote_step_sm(cell_id, None, (path_string, entry_hash, act))?;
     Ok(())
 }
