@@ -1,10 +1,10 @@
 use hdk::prelude::{holo_hash::DnaHash, *};
 
 use common::{
-    get_latest_linked_entry, remote_get_sensemaker_entry_by_path, remote_initialize_sm_data,
-    remote_set_sensemaker_entry_parse_rl_expr, remote_step_sm, sensemaker_cell_id_anchor,
-    sensemaker_cell_id_fns, util, SensemakerCellId, SensemakerEntry, OWNER_TAG, SM_COMP_TAG,
-    SM_DATA_TAG, SM_INIT_TAG,
+    compose_entry_hash_path, get_latest_linked_entry, remote_get_sensemaker_entry_by_path,
+    remote_initialize_sm_data, remote_set_sensemaker_entry_parse_rl_expr, remote_step_sm,
+    sensemaker_cell_id_anchor, sensemaker_cell_id_fns, util, SensemakerCellId, SensemakerEntry,
+    OWNER_TAG, SM_COMP_TAG, SM_DATA_TAG, SM_INIT_TAG,
 };
 
 pub const PAPER_TAG: &str = "paperz_paper";
@@ -140,7 +140,7 @@ fn create_annotation(annotation: Annotation) -> ExternResult<(EntryHash, HeaderH
 fn get_state_machine_data(
     target_eh: EntryHash,
 ) -> ExternResult<Option<(EntryHash, SensemakerEntry)>> {
-    let path_string = format!("{}.{}", ANNOTATIONZ_PATH, target_eh);
+    let path_string = compose_entry_hash_path(&ANNOTATIONZ_PATH.into(), target_eh);
     get_state_machine_generic(path_string, SM_DATA_TAG.to_string())
 }
 
