@@ -62,7 +62,6 @@ fn upload_paper(paper: Paper) -> ExternResult<HeaderHash> {
 
 #[hdk_extern]
 fn get_all_paperz(_: ()) -> ExternResult<Vec<(EntryHash, Paper)>> {
-    debug!("get_all_paperz: begin");
     let paper_entry_links = get_links(paper_anchor()?, Some(LinkTag::new(PAPER_TAG)))?;
     let mut paperz: Vec<(EntryHash, Paper)> = Vec::new();
     let mut opt_err = None;
@@ -96,7 +95,6 @@ fn annotation_anchor() -> ExternResult<EntryHash> {
 fn get_annotations_for_paper(
     paper_entry_hash: EntryHash,
 ) -> ExternResult<Vec<(EntryHash, Annotation)>> {
-    debug!("get_annotations_for_paper: begin");
     let mut annotations: Vec<(EntryHash, Annotation)> = Vec::new();
     for link in get_links(paper_entry_hash, Some(LinkTag::new(ANN_TAG)))? {
         let annotation_entry_hash = link.target.into_entry_hash().expect("should be an Entry.");
