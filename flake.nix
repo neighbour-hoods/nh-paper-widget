@@ -2,9 +2,10 @@
   inputs = {
     nh-nix-env.url = "github:neighbour-hoods/nh-nix-env";
     node2nix.url = "github:samuelludwig/node2nix";
+    social_sensemaker.url = "github:neighbour-hoods/social_sensemaker";
   };
 
-  outputs = { nh-nix-env, node2nix, ... }:
+  outputs = { nh-nix-env, node2nix, social_sensemaker, ... }:
     let
       flake-utils = nh-nix-env.metavalues.flake-utils;
       nh-supported-systems = nh-nix-env.metavalues.nh-supported-systems;
@@ -107,5 +108,7 @@
               hc app pack $out
             '';
           };
+
+        packages.social_sensemaker = social_sensemaker.packages.${system}.social_sensemaker-naersk;
       });
 }

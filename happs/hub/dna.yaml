@@ -1,8 +1,0 @@
-manifest_version: "1"
-name: "hub"
-uuid: ""
-properties: null
-zomes:
-  - name: hub_main
-    bundled: "./hub.wasm"
-    #    properties:

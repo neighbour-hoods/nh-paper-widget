@@ -5,6 +5,8 @@ import { HcClient } from './hcClient';
 
 const STATUS_INITIAL = 0, STATUS_SAVING = 1, STATUS_SUCCESS = 2, STATUS_FAILED = 3;
 
+const ANN_PATH_STRING = "widget.paperz.annotationz";
+
 const App = {
   name: 'paperz',
   data() {
@@ -27,7 +29,7 @@ const App = {
       paperz: [],
       annotationz: [],
       sm_submit: {
-        path_string: "widget.paperz.annotationz",
+        path_string: ANN_PATH_STRING,
         sm_init: {
           expr_str: "0",
         },
@@ -82,13 +84,13 @@ const App = {
     },
     async get_sm_init_and_comp_s() {
       console.log('get_sm_init_and_comp_s...');
-      const path_strings = ["widget.paperz.annotationz"];
+      const path_strings = [ANN_PATH_STRING];
 
       for (var i = 0; i < path_strings.length; i++) {
         let path_string = path_strings[i];
-        this.sm_init_s[path_string] = await this.hcClient.get_sm_init(path_string);
+        this.sm_init_s[path_string] = await this.hcClient.get_state_machine_init(path_string);
         console.log("sm_init_s", this.sm_init_s[path_string]);
-        this.sm_comp_s[path_string] = await this.hcClient.get_sm_comp(path_string);
+        this.sm_comp_s[path_string] = await this.hcClient.get_state_machine_comp(path_string);
         console.log("sm_comp_s", this.sm_comp_s[path_string]);
       }
 
@@ -113,7 +115,7 @@ const App = {
         console.log("Starting 2nd async forEach, get sensemaker");
         await asyncForEach(annotationz, async (ele, index) => {
           console.log('getting sm_data');
-          let sm_data = await this.hcClient.get_sm_data_for_eh(ele[0]);
+          let sm_data = await this.hcClient.get_state_machine_data(ele[0]);
           console.log("sm_data: ", sm_data);
           annotationz[index].push(sm_data);
         });
@@ -126,13 +128,13 @@ const App = {
     // initialize sense maker state machine to
     async set_sm_init() {
       let payload = [this.sm_submit.path_string, this.sm_submit.sm_init.expr_str];
-      let res = await this.hcClient.set_sm_init_se_eh(payload);
+      let res = await this.hcClient.set_state_machine_init(payload);
       console.log("set_sm_init res: ", res);
       this.get_sm_init_and_comp_s();
     },
     async set_sm_comp() {
       let payload = [this.sm_submit.path_string, this.sm_submit.sm_comp.expr_str];
-      let res = await this.hcClient.set_sm_comp_se_eh(payload);
+      let res = await this.hcClient.set_state_machine_comp(payload);
 
       console.log("set_sm_comp res: ", res);
       this.get_sm_init_and_comp_s();
@@ -176,7 +178,7 @@ const App = {
       console.log(evt);
 
       let obj = [
-        "widget.paperz.annotationz",
+        ANN_PATH_STRING,
         ann_eh,
         evt.target.elements.action.value
       ];
@@ -200,25 +202,25 @@ const App = {
     let cells = await admin.listCellIds();
     console.log('cells: ', cells);
 
-    const installed_app_id = 'hub';
+    const installed_app_id = 'sensemaker';
     if (cells.length == 1) {
       console.log('cells == 1');
-      const hubDnaHash = await admin.registerDna({
-        path: './happs/hub/hub.dna',
+      const sensemakerDnaHash = await admin.registerDna({
+        path: './result/social_sensemaker.dna',
       });
       const installedApp = await admin.installApp({
         installed_app_id,
         agent_key: this.hcClient.cellId[1],
-        dnas: [{ hash: hubDnaHash, role_id: 'thedna' }],
+        dnas: [{ hash: sensemakerDnaHash, role_id: 'thedna' }],
       });
       console.log('installedApp: ', installedApp);
       const startApp1 = await admin.enableApp({ installed_app_id });
       console.log('startApp1: ', startApp1);
 
-      const hubCell = installedApp.cell_data[0].cell_id;
-      console.log('setting hubCell: ', hubCell);
-      let res = await this.hcClient.set_hub_cell_id(hubCell);
-      console.log('set_hub_cell_id: ', res);
+      const sensemakerCell = installedApp.cell_data[0].cell_id;
+      console.log('setting sensemakerCell: ', sensemakerCell);
+      let res = await this.hcClient.set_sensemaker_cell_id(sensemakerCell);
+      console.log('set_sensemaker_cell_id: ', res);
     }
 
     await this.get_sm_init_and_comp_s();

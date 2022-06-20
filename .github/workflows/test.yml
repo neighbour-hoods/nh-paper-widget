@@ -36,7 +36,6 @@ jobs:
           target
         key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
     - run: nix-shell --command "npm install && npm run hc:build-paperz && npm run hc:pack-paperz"
-    - run: nix-shell --command "npm install && npm run hc:build-hub && npm run hc:pack-hub"
 
   rustfmt:
     runs-on: ubuntu-latest
