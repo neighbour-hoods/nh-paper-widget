@@ -23,6 +23,7 @@
     "hc:pack-paperz": "hc dna pack happs/paperz && hc app pack happs/paperz",
     "hc:run-paperz": "hc sandbox generate happs/paperz && WASM_LOG=debug RUST_LOG=error RUST_BACKTRACE=full hc sandbox -f=9000 run -l -p 9999",
     "hc:redo-paperz": "npm run hc:build-paperz && npm run hc:pack-paperz && npm run hc:run-paperz",
+    "hc:mk-sensemaker": "nix build .#social_sensemaker --impure",
     "hc:pg": "npx @holochain-playground/cli ws://localhost:9000"
   },
   "author": "",

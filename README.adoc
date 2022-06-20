@@ -33,6 +33,7 @@ $ nix develop --impure
 [<...>]$ npm run hc:build
 [<...>]$ npm run hc:pack
 [<...>]$ npm run fe:build
+[<...>]$ npm run hc:mk-sensemaker # this may take a while to run
 ----
 
 === running

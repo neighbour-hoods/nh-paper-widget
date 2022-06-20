@@ -206,8 +206,7 @@ const App = {
     if (cells.length == 1) {
       console.log('cells == 1');
       const sensemakerDnaHash = await admin.registerDna({
-        // TODO source this from inside the repo
-        path: '../social_sensemaker/happs/social_sensemaker/social_sensemaker.dna',
+        path: './result/social_sensemaker.dna',
       });
       const installedApp = await admin.installApp({
         installed_app_id,
