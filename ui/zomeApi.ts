@@ -1,5 +1,6 @@
-import { AdminWebsocket, AppWebsocket, CellId, HoloHashB64, InstalledAppInfo } from '@holochain/client';
-import { Annotation, AnnotationOutput, HolochainOutput, Paper, PaperOutput, StateMachineInput, StepStateMachineInput } from './types/paperz';
+import { AdminWebsocket, AppWebsocket, CellId, InstalledAppInfo } from '@holochain/client';
+import { Annotation, AnnotationOutput, Paper, PaperOutput } from './types/paperz';
+import { HolochainOutput, StateMachineInput, StepStateMachineInput } from './types/sensemaker';
 import { HeaderHashB64, EntryHashB64 } from "@holochain-open-dev/core-types"
 import { SensemakerOutput } from './types/sensemaker';
 

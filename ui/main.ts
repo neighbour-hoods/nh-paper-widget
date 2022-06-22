@@ -1,6 +1,6 @@
 // 🤷‍️, from \/
 // https://github.com/fengyuanchen/vue-feather/issues/8
-const createApp = require('vue/dist/vue.esm-bundler');
+import { createApp } from 'vue';
 import { ZomeApi } from './zomeApi';
 import {getLogger} from "./LogConfig";
 import { Annotation, Paper } from './types/paperz';
@@ -120,12 +120,12 @@ const App = {
     // initialize sense maker state machine to
     async set_sm_init(): Promise<void> {
       let payload = [this.sm_submit.path_string, this.sm_submit.sm_init.expr_str];
-      let res = await this.zomeApi.set_state_machine_init(payload);
+      await this.zomeApi.set_state_machine_init(payload);
       this.get_sm_init_and_comp_s();
     },
     async set_sm_comp() {
       let payload = [this.sm_submit.path_string, this.sm_submit.sm_comp.expr_str];
-      let res = await this.zomeApi.set_state_machine_comp(payload);
+      await this.zomeApi.set_state_machine_comp(payload);
       this.get_sm_init_and_comp_s();
     },
     // TODO: get a type for event.
@@ -136,7 +136,7 @@ const App = {
         filename: file.name,
         blob_str: await getBase64(file),
       };
-      let hh = await this.zomeApi.upload_paper(obj);
+      await this.zomeApi.upload_paper(obj);
       this.currentStatus = STATUS_INITIAL;
       await this.get_paperz();
     },
