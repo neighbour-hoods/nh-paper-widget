@@ -1,20 +1,20 @@
 import { AdminWebsocket, AppWebsocket, CellId, HoloHashB64, InstalledAppInfo } from '@holochain/client';
-import { Annotation, AnnotationOutput, HolochainOutput, Paper, PaperOutput, StateMachineInput, StepStateMachineInput } from './types/types';
+import { Annotation, AnnotationOutput, HolochainOutput, Paper, PaperOutput, StateMachineInput, StepStateMachineInput } from './types/paperz';
 import { HeaderHashB64, EntryHashB64 } from "@holochain-open-dev/core-types"
 import { SensemakerOutput } from './types/sensemaker';
 
-export class HcClient {
+export class ZomeApi {
   adminWs: AdminWebsocket;
   appWs: AppWebsocket;
   cellId: CellId;
 
-  constructor(adminWs, appWs, cellId) {
+  constructor(adminWs: AdminWebsocket, appWs: AppWebsocket, cellId:CellId) {
     this.adminWs = adminWs;
     this.appWs = appWs;
     this.cellId = cellId;
   }
 
-  static async initialize(appPort, adminPort) {
+  static async initialize(appPort: string, adminPort: string) {
       let appWs = await AppWebsocket.connect('ws://localhost:' + appPort.toString());
       let adminWs = await AdminWebsocket.connect('ws://localhost:' + adminPort.toString());
 
@@ -22,9 +22,10 @@ export class HcClient {
         installed_app_id: 'test-app',
       });
       let cellId: CellId = info.cell_data[0].cell_id;
-      return new HcClient(adminWs, appWs, cellId);
+      return new ZomeApi(adminWs, appWs, cellId);
   }
 
+  // generic paperz zome call. All zome calls below use this.
   async callZome(fn_name: string, payload: any): Promise<any> {
     return await this.appWs.callZome({
       cap_secret: null,
@@ -53,8 +54,8 @@ export class HcClient {
     return (await this.callZome('get_annotations_for_paper', paper_entry_hash)) as Array<AnnotationOutput>;
   }
 
-  async upload_paper(payload): Promise<HeaderHashB64> {
-    return (await this.callZome('upload_paper', payload)) as HeaderHashB64;
+  async upload_paper(paper: Paper): Promise<HeaderHashB64> {
+    return (await this.callZome('upload_paper', paper)) as HeaderHashB64;
   }
 
   // Holochain call with sensemaker bridge call
@@ -83,7 +84,7 @@ export class HcClient {
     return (await this.callZome('set_state_machine_init', {path, expr} as StateMachineInput)) as boolean;
   }
 
-  async step_sm(path: string, entry_hash: EntryHashB64, action: string): Promise<void> {
-    return await this.callZome('step_sm_remote', {path, entry_hash, action} as StepStateMachineInput);
+  async step_sm(stateMachineInput: StateMachineInput): Promise<void> {
+    return await this.callZome('step_sm_remote', stateMachineInput);
   }
 }

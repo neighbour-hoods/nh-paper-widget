@@ -2,16 +2,18 @@
   "name": "nh-mvp",
   "version": "1.0.0",
   "description": "",
-  "main": "js/main.js",
+  "main": "ui/main.ts",
   "directories": {
-    "js": "js"
+    "ui": "ui"
   },
   "dependencies": {
     "@holochain-open-dev/cell-client": "^0.3.3",
-    "@holochain/client": "^0.3.2",
     "@holochain-open-dev/core-types": "^0.2.0",
+    "@holochain/client": "^0.3.2",
     "source-map-loader": "^4.0.0",
     "ts-loader": "^9.3.0",
+    "typescript-logging": "^2.0.1",
+    "typescript-logging-category-style": "^2.0.1",
     "vue": "^3.2.26",
     "webpack": "^5.65.0",
     "webpack-cli": "^4.9.1"
@@ -19,7 +21,7 @@
   "scripts": {
     "start": "miniserve .",
     "fe:build": "webpack-cli --config webpack.config.js",
-    "go": "npm run fe:build && npm run start",
+    "ui": "npm run fe:build && npm run start",
     "fe:build-prod": "webpack-cli --entry ./js/main.js --output-filename index.js --mode production",
     "hc:clean": "rm -rf .hc*",
     "hc:build-paperz": "cargo build -p paperz --release --target wasm32-unknown-unknown && cp $CARGO_TARGET_DIR/wasm32-unknown-unknown/release/paperz.wasm ./happs/paperz",
@@ -30,5 +32,8 @@
     "hc:pg": "npx @holochain-playground/cli ws://localhost:9000"
   },
   "author": "",
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "@types/vue": "^2.0.0"
+  }
 }

@@ -23,18 +23,3 @@ export interface AnnotationOutput {
   annotation: Annotation
 }
 
-export interface HolochainOutput {
-  entry_hash: EntryHashB64,
-  header_hash: HeaderHashB64
-}
-
-export interface StateMachineInput {
-  path: string,
-  expr: string
-}
-
-export interface StepStateMachineInput {
-  path: string,
-  entry_hash: EntryHashB64,
-  action: string
-}
