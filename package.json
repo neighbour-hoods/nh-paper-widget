@@ -7,7 +7,7 @@
     "ui": "ui"
   },
   "dependencies": {
-    "@holochain-open-dev/cell-client": "^0.3.3",
+    "@holochain-open-dev/cell-client": "^0.3.5",
     "@holochain-open-dev/core-types": "^0.2.0",
     "@holochain/client": "^0.4.1",
     "source-map-loader": "^4.0.0",
@@ -19,7 +19,7 @@
     "webpack-cli": "^4.9.1"
   },
   "scripts": {
-    "dev": "miniserve .",
+    "start": "miniserve .",
     "fe:build": "webpack-cli --config webpack.config.js",
     "ui": "npm run fe:build && npm run start",
     "fe:build-prod": "webpack-cli --entry ./ui/main.ts --output-filename index.js --mode production",
