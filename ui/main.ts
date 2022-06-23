@@ -1,7 +1,7 @@
 // 🤷‍️, from \/
 // https://github.com/fengyuanchen/vue-feather/issues/8
 import { createApp } from 'vue';
-import { ZomeApi } from './zomeApi';
+import { getZomeApi, ZomeApi } from './zomeApi';
 import {getLogger} from "./LogConfig";
 import { Annotation, Paper } from './types/paperz';
 import { StepStateMachineInput } from './types/sensemaker';
@@ -11,9 +11,10 @@ const STATUS_INITIAL = 0, STATUS_SAVING = 1, STATUS_SUCCESS = 2, STATUS_FAILED =
 
 const ANNOTATION_PATH: string = "widget.paperz.annotationz";
 
+
 const App = {
   name: 'paperz',
-  async data() {
+  data() {
     let hcAppPort: string | null = localStorage.getItem('hcAppPort');
     if (hcAppPort === null) {
       hcAppPort = '9999';
@@ -25,8 +26,6 @@ const App = {
       localStorage.setItem('hcAdminPort', hcAdminPort);
     }
 
-    let zomeApi: ZomeApi =  await ZomeApi.initialize(hcAppPort, hcAdminPort);
-
     const logger = getLogger("main");
     return {
       hcAppPort,
@@ -34,30 +33,29 @@ const App = {
       logger,
       uploadError: null,
       currentStatus: null,
-      zomeApi,
+      zomeApi: getZomeApi(),
       paperz: [],
       annotationz: [],
       sm_submit: {
-        path_string: ANNOTATION_PATH,
         sm_init: {
           expr_str: "0",
         },
         sm_comp: {
           expr_str: `\
-(lam [st act]
-  (if (== st 0)
-    (if (== act 0)
-      0
-      (if (== act 1)
-        1
-        st))
-    (if (== st 1)
-      (if (== act 0)
-        0
-        (if (== act 1)
-          1
-          st))
-      st)))`,
+            (lam [st act]
+              (if (== st 0)
+                (if (== act 0)
+                  0
+                  (if (== act 1)
+                    1
+                    st))
+                (if (== st 1)
+                  (if (== act 0)
+                    0
+                    (if (== act 1)
+                      1
+                      st))
+                  st)))`,
         },
       },
       sm_init_s: {
@@ -92,7 +90,7 @@ const App = {
       window.location.reload()
     },
     async get_sm_init_and_comp_s(): Promise<void> {
-      this.logger.debug('get_sm_init_and_comp_s...');
+      // untested -> this.logger.debug('get_sm_init_and_comp_s...');
       const paths: Array<string> = [ANNOTATION_PATH];
 
       for (var i = 0; i < paths.length; i++) {
@@ -119,12 +117,12 @@ const App = {
     },
     // initialize sense maker state machine to
     async set_sm_init(): Promise<void> {
-      let payload = [this.sm_submit.path_string, this.sm_submit.sm_init.expr_str];
+      let payload = [ANNOTATION_PATH, this.sm_submit.sm_init.expr_str];
       await this.zomeApi.set_state_machine_init(payload);
       this.get_sm_init_and_comp_s();
     },
     async set_sm_comp() {
-      let payload = [this.sm_submit.path_string, this.sm_submit.sm_comp.expr_str];
+      let payload = [ANNOTATION_PATH, this.sm_submit.sm_comp.expr_str];
       await this.zomeApi.set_state_machine_comp(payload);
       this.get_sm_init_and_comp_s();
     },
@@ -167,11 +165,11 @@ const App = {
 // lifecycle hooks
 ////////////////////////////////////////////////////////////////////////////////
   async beforeMount () {
-    this.zomeApi = await ZomeApi.initialize(this.hcAppPort, this.hcAdminPort);
+    await ZomeApi.initialize(this.hcAppPort, this.hcAdminPort);
+    const zomeApi = getZomeApi();
 
-    let admin = this.zomeApi.adminWs;
+    let admin = zomeApi!.adminWs;
     let cells = await admin.listCellIds();
-
     const installed_app_id = 'sensemaker';
     if (cells.length == 1) {
       const sensemakerDnaHash = await admin.registerDna({

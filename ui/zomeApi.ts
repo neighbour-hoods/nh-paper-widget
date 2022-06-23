@@ -4,6 +4,13 @@ import { HolochainOutput, StateMachineInput, StepStateMachineInput } from './typ
 import { HeaderHashB64, EntryHashB64 } from "@holochain-open-dev/core-types"
 import { SensemakerOutput } from './types/sensemaker';
 
+let zomeApi: ZomeApi | null;
+
+export function getZomeApi(): ZomeApi | null {
+  console.log('zomeApi: ', zomeApi);
+  return zomeApi;
+}
+
 export class ZomeApi {
   adminWs: AdminWebsocket;
   appWs: AppWebsocket;
@@ -23,7 +30,7 @@ export class ZomeApi {
         installed_app_id: 'test-app',
       });
       let cellId: CellId = info.cell_data[0].cell_id;
-      return new ZomeApi(adminWs, appWs, cellId);
+      zomeApi = new ZomeApi(adminWs, appWs, cellId);
   }
 
   // generic paperz zome call. All zome calls below use this.
