@@ -107,15 +107,15 @@ dependencies = [
 [[package]]
 name = "common"
 version = "0.1.0"
-source = "git+https://github.com/neighbour-hoods/social_sensemaker.git?rev=a53bfd1a52dfe1b1bb53675213713f17d9235abf#a53bfd1a52dfe1b1bb53675213713f17d9235abf"
+source = "git+https://github.com/neighbour-hoods/social_sensemaker.git?rev=403d97ef84ee718ef855f36e1c63feab491915f5#403d97ef84ee718ef855f36e1c63feab491915f5"
 dependencies = [
  "base64",
  "combine",
  "hdk",
  "pretty",
- "rep_lang_concrete_syntax 0.1.0 (git+https://github.com/neighbour-hoods/rep_lang.git?rev=c321016c1d3d9fe548a1df1c47e1748d5bff6f87)",
- "rep_lang_core 0.1.0 (git+https://github.com/neighbour-hoods/rep_lang.git?rev=c321016c1d3d9fe548a1df1c47e1748d5bff6f87)",
- "rep_lang_runtime 0.1.0 (git+https://github.com/neighbour-hoods/rep_lang.git?rev=c321016c1d3d9fe548a1df1c47e1748d5bff6f87)",
+ "rep_lang_concrete_syntax",
+ "rep_lang_core",
+ "rep_lang_runtime",
  "serde",
  "social_sensemaker_macros",
 ]
@@ -490,8 +490,8 @@ version = "0.1.0"
 dependencies = [
  "common",
  "hdk",
- "rep_lang_core 0.1.0 (git+https://github.com/neighbour-hoods/rep_lang.git?rev=779822b196f9073f5119864143bdc6d1ee6deed9)",
- "rep_lang_runtime 0.1.0 (git+https://github.com/neighbour-hoods/rep_lang.git?rev=779822b196f9073f5119864143bdc6d1ee6deed9)",
+ "rep_lang_core",
+ "rep_lang_runtime",
  "serde",
 ]
 
@@ -658,37 +658,13 @@ checksum = "f497285884f3fcff424ffc933e56d7cbca511def0c9831a7f9b5f6153e3cc89b"
 [[package]]
 name = "rep_lang_concrete_syntax"
 version = "0.1.0"
-source = "git+https://github.com/neighbour-hoods/rep_lang.git?rev=779822b196f9073f5119864143bdc6d1ee6deed9#779822b196f9073f5119864143bdc6d1ee6deed9"
-dependencies = [
- "combine",
- "pretty",
- "quickcheck",
- "rand",
- "rep_lang_core 0.1.0 (git+https://github.com/neighbour-hoods/rep_lang.git?rev=779822b196f9073f5119864143bdc6d1ee6deed9)",
-]
-
-[[package]]
-name = "rep_lang_concrete_syntax"
-version = "0.1.0"
 source = "git+https://github.com/neighbour-hoods/rep_lang.git?rev=c321016c1d3d9fe548a1df1c47e1748d5bff6f87#c321016c1d3d9fe548a1df1c47e1748d5bff6f87"
 dependencies = [
  "combine",
  "pretty",
  "quickcheck",
  "rand",
- "rep_lang_core 0.1.0 (git+https://github.com/neighbour-hoods/rep_lang.git?rev=c321016c1d3d9fe548a1df1c47e1748d5bff6f87)",
-]
-
-[[package]]
-name = "rep_lang_core"
-version = "0.1.0"
-source = "git+https://github.com/neighbour-hoods/rep_lang.git?rev=779822b196f9073f5119864143bdc6d1ee6deed9#779822b196f9073f5119864143bdc6d1ee6deed9"
-dependencies = [
- "hdk",
- "holochain_serialized_bytes_derive",
- "quickcheck",
- "rand",
- "serde",
+ "rep_lang_core",
 ]
 
 [[package]]
@@ -706,22 +682,6 @@ dependencies = [
 [[package]]
 name = "rep_lang_runtime"
 version = "0.1.0"
-source = "git+https://github.com/neighbour-hoods/rep_lang.git?rev=779822b196f9073f5119864143bdc6d1ee6deed9#779822b196f9073f5119864143bdc6d1ee6deed9"
-dependencies = [
- "byteorder",
- "combine",
- "hdk",
- "holochain_serialized_bytes_derive",
- "pretty",
- "rep_lang_concrete_syntax 0.1.0 (git+https://github.com/neighbour-hoods/rep_lang.git?rev=779822b196f9073f5119864143bdc6d1ee6deed9)",
- "rep_lang_core 0.1.0 (git+https://github.com/neighbour-hoods/rep_lang.git?rev=779822b196f9073f5119864143bdc6d1ee6deed9)",
- "rustyline",
- "serde",
-]
-
-[[package]]
-name = "rep_lang_runtime"
-version = "0.1.0"
 source = "git+https://github.com/neighbour-hoods/rep_lang.git?rev=c321016c1d3d9fe548a1df1c47e1748d5bff6f87#c321016c1d3d9fe548a1df1c47e1748d5bff6f87"
 dependencies = [
  "byteorder",
@@ -729,8 +689,8 @@ dependencies = [
  "hdk",
  "holochain_serialized_bytes_derive",
  "pretty",
- "rep_lang_concrete_syntax 0.1.0 (git+https://github.com/neighbour-hoods/rep_lang.git?rev=c321016c1d3d9fe548a1df1c47e1748d5bff6f87)",
- "rep_lang_core 0.1.0 (git+https://github.com/neighbour-hoods/rep_lang.git?rev=c321016c1d3d9fe548a1df1c47e1748d5bff6f87)",
+ "rep_lang_concrete_syntax",
+ "rep_lang_core",
  "rustyline",
  "serde",
 ]
@@ -861,7 +821,7 @@ checksum = "f2dd574626839106c320a323308629dcb1acfc96e32a8cba364ddc61ac23ee83"
 [[package]]
 name = "social_sensemaker_macros"
 version = "0.1.0"
-source = "git+https://github.com/neighbour-hoods/social_sensemaker.git?rev=a53bfd1a52dfe1b1bb53675213713f17d9235abf#a53bfd1a52dfe1b1bb53675213713f17d9235abf"
+source = "git+https://github.com/neighbour-hoods/social_sensemaker.git?rev=403d97ef84ee718ef855f36e1c63feab491915f5#403d97ef84ee718ef855f36e1c63feab491915f5"
 dependencies = [
  "proc-macro2",
  "quote",
